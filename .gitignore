@@ -1,0 +1,27 @@
+# Carpetas generadas por Unity (¡NO SUBIR!)
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# Archivos de caché e indexación de Unity
+sysinfo.txt
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# Archivos del sistema y de Visual Studio
+.vs/
+.idea/
+*.csproj
+*.sln
+.DS_Store
+
+# Ignorar videos pesados (GitHub no acepta más de 100MB)
+*.mp4
+*.MP4
+*.mov
