@@ -9,9 +9,9 @@ TagManager:
   - Cuchillo
   - Tortilla
   - taco
-  - Plancha
-  - Mesa
-  - Suelo
+  - Floor
+  - Plato
+  - Pastor
   layers:
   - Default
   - TransparentFX

@@ -1,13 +1,12 @@
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
-using System.Collections;
 
 /// <summary>
-/// Script para cortar carne al pastor.
+/// MeatCutter — Script para cortar carne al pastor del trompo.
 /// Se coloca en el objeto Meat_Shepherd-material (que ya tiene un CapsuleCollider trigger).
+///
 /// Cuando un objeto con el tag "Cuchillo" entra en el trigger,
-/// busca la mejor tortilla (prioridad: en mano > más cercana)
-/// y el trozo de Pastor vuela en curva hacia ella.
+/// instancia un trozo de pastor y lo lanza en la dirección del corte
+/// (basada en la normal/forward del cuchillo) para que el jugador lo atrape.
 /// </summary>
 public class MeatCutter : MonoBehaviour
 {
@@ -15,23 +14,32 @@ public class MeatCutter : MonoBehaviour
     [Tooltip("Arrastra aquí el prefab Pastor desde Assets/PROYECTO/Prefabs/Interactables/")]
     public GameObject pastorPrefab;
 
-    [Header("Configuración de la curva")]
-    [Tooltip("Qué tan alto sube el trozo en el punto más alto del arco (metros)")]
-    public float alturaCurva = 1.0f;
+    [Header("Configuración de lanzamiento")]
+    [Tooltip("Fuerza con la que se lanza el trozo de carne (impulso).")]
+    public float fuerzaLanzamiento = 3f;
 
-    [Tooltip("Tiempo que tarda el trozo en viajar de la carne a la tortilla (segundos)")]
-    public float tiempoDeVuelo = 0.8f;
+    [Tooltip("Si true, lanza en la dirección forward del cuchillo. Si false, lanza hacia arriba con variación aleatoria.")]
+    public bool useKnifeDirection = true;
+
+    [Tooltip("Cantidad de variación aleatoria en la dirección de lanzamiento.")]
+    [Range(0f, 1f)]
+    public float randomSpread = 0.3f;
 
     [Header("Configuración de corte")]
-    [Tooltip("Tiempo de espera entre cortes (segundos) para no spamear trozos")]
+    [Tooltip("Tiempo de espera entre cortes (segundos) para no spamear trozos.")]
     public float cooldownCorte = 0.5f;
 
     [Header("Punto de spawn (opcional)")]
-    [Tooltip("Si se deja vacío, el trozo aparece en la posición del contacto con el cuchillo")]
+    [Tooltip("Si se deja vacío, el trozo aparece en la posición del contacto con el cuchillo.")]
     public Transform puntoDeSpawn;
+
+    [Header("Audio (opcional)")]
+    [Tooltip("Sonido al cortar.")]
+    public AudioClip cutSound;
 
     // Control de cooldown
     private float ultimoCorte = -Mathf.Infinity;
+    private AudioSource _audioSource;
 
     private void Start()
     {
@@ -39,33 +47,30 @@ public class MeatCutter : MonoBehaviour
         {
             Debug.LogError("[MeatCutter] ¡No se asignó el prefab Pastor! Arrástralo en el Inspector.");
         }
+
+        _audioSource = GetComponent<AudioSource>();
+        if (_audioSource == null)
+            _audioSource = gameObject.AddComponent<AudioSource>();
+        _audioSource.spatialBlend = 1f;
+        _audioSource.playOnAwake = false;
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("[MeatCutter] OnTriggerEnter detectó: " + other.gameObject.name + " (tag: " + other.tag + ")");
-
         // Solo reaccionar a objetos con el tag "Cuchillo"
-        if (!other.CompareTag("Cuchillo"))
-        {
-            Debug.Log("[MeatCutter] Objeto ignorado, no tiene tag 'Cuchillo'.");
-            return;
-        }
-
-        Debug.Log("[MeatCutter] >>> CUCHILLO DETECTADO! <<<");
+        if (!other.CompareTag("Cuchillo")) return;
 
         // Verificar cooldown
-        if (Time.time - ultimoCorte < cooldownCorte)
-        {
-            Debug.Log("[MeatCutter] Cooldown activo, faltan " + (cooldownCorte - (Time.time - ultimoCorte)).ToString("F2") + "s");
-            return;
-        }
+        if (Time.time - ultimoCorte < cooldownCorte) return;
 
         if (pastorPrefab == null)
         {
             Debug.LogError("[MeatCutter] pastorPrefab es NULL, no se puede cortar.");
             return;
         }
+
+        // Solo cortar si hay partida en curso
+        if (GameManager.Instance != null && !GameManager.Instance.IsGameRunning) return;
 
         ultimoCorte = Time.time;
 
@@ -74,147 +79,68 @@ public class MeatCutter : MonoBehaviour
         if (puntoDeSpawn != null)
         {
             posicionSpawn = puntoDeSpawn.position;
-            Debug.Log("[MeatCutter] Spawn en punto personalizado: " + posicionSpawn);
         }
         else
         {
             posicionSpawn = other.ClosestPoint(transform.position);
-            Debug.Log("[MeatCutter] Spawn en punto de contacto: " + posicionSpawn);
-        }
-
-        // Buscar la mejor tortilla
-        Debug.Log("[MeatCutter] Buscando mejor tortilla...");
-        Transform tortilla = BuscarMejorTortilla();
-
-        if (tortilla == null)
-        {
-            Debug.LogWarning("[MeatCutter] No se encontró ninguna Tortilla con tag 'Tortilla' en la escena.");
-            return;
         }
 
         // Instanciar el trozo de carne
         GameObject trozo = Instantiate(pastorPrefab, posicionSpawn, Random.rotation);
-        Debug.Log("[MeatCutter] Trozo de pastor instanciado en: " + posicionSpawn);
-        Debug.Log("[MeatCutter] >>> LANZANDO trozo hacia tortilla: " + tortilla.name + " en posición: " + tortilla.position + " <<<");
 
-        // Volar en curva hacia la tortilla
-        StartCoroutine(VolarEnCurva(trozo, posicionSpawn, tortilla));
+        // Calcular la dirección de lanzamiento
+        Vector3 direccion = CalcularDireccionLanzamiento(other.transform);
+
+        // Asegurar que el trozo tiene Rigidbody
+        Rigidbody rb = trozo.GetComponent<Rigidbody>();
+        if (rb == null)
+            rb = trozo.AddComponent<Rigidbody>();
+
+        // Asegurar que no es kinematic para que vuele con física
+        rb.isKinematic = false;
+        rb.useGravity = true;
+
+        // Lanzar el trozo
+        rb.AddForce(direccion * fuerzaLanzamiento, ForceMode.Impulse);
+
+        // Agregar un poco de rotación para efecto visual
+        rb.AddTorque(Random.insideUnitSphere * 5f, ForceMode.Impulse);
+
+        // Audio
+        if (cutSound != null && _audioSource != null)
+            _audioSource.PlayOneShot(cutSound);
+
+        Debug.Log($"[MeatCutter] Trozo de pastor cortado y lanzado. Dirección: {direccion}");
     }
 
     /// <summary>
-    /// Busca la mejor tortilla disponible.
-    /// Prioridad 1: Una tortilla que el jugador tenga en la mano (XR Grab isSelected).
-    /// Prioridad 2: La tortilla más cercana a la carne.
+    /// Calcula la dirección de lanzamiento basándose en la orientación del cuchillo.
     /// </summary>
-    private Transform BuscarMejorTortilla()
+    private Vector3 CalcularDireccionLanzamiento(Transform cuchillo)
     {
-        GameObject[] tortillas = GameObject.FindGameObjectsWithTag("Tortilla");
-        Debug.Log("[MeatCutter] Tortillas encontradas en escena: " + tortillas.Length);
+        Vector3 direccion;
 
-        if (tortillas.Length == 0)
+        if (useKnifeDirection)
         {
-            Debug.LogWarning("[MeatCutter] No hay ningún objeto con tag 'Tortilla' en la escena.");
-            return null;
+            // Usar la dirección forward del cuchillo (la normal de corte)
+            direccion = cuchillo.forward;
+
+            // Asegurar que tenga algo de componente hacia arriba para que no vaya al suelo
+            if (direccion.y < 0.1f)
+                direccion.y = 0.3f;
+
+            direccion.Normalize();
+        }
+        else
+        {
+            // Dirección por defecto: hacia arriba y un poco hacia adelante
+            direccion = (Vector3.up + cuchillo.right * 0.5f).normalized;
         }
 
-        // Prioridad 1: buscar una tortilla que esté agarrada por el jugador
-        foreach (GameObject t in tortillas)
-        {
-            XRGrabInteractable grab = t.GetComponent<XRGrabInteractable>();
-            if (grab != null && grab.isSelected)
-            {
-                Debug.Log("[MeatCutter] >>> Tortilla EN MANO encontrada: " + t.name + " (prioridad 1) <<<");
-                return t.transform;
-            }
-        }
+        // Agregar variación aleatoria
+        direccion += Random.insideUnitSphere * randomSpread;
+        direccion.Normalize();
 
-        Debug.Log("[MeatCutter] Ninguna tortilla en mano, buscando la más cercana...");
-
-        // Prioridad 2: la tortilla más cercana a la carne
-        Transform masCercana = null;
-        float distanciaMinima = Mathf.Infinity;
-
-        foreach (GameObject t in tortillas)
-        {
-            float distancia = Vector3.Distance(transform.position, t.transform.position);
-            Debug.Log("[MeatCutter]   - " + t.name + " a distancia: " + distancia.ToString("F2") + "m");
-            if (distancia < distanciaMinima)
-            {
-                distanciaMinima = distancia;
-                masCercana = t.transform;
-            }
-        }
-
-        Debug.Log("[MeatCutter] >>> Tortilla más cercana: " + masCercana.name + " a " + distanciaMinima.ToString("F2") + "m (prioridad 2) <<<");
-        return masCercana;
-    }
-
-    /// <summary>
-    /// Mueve el trozo en un arco Bézier cuadrático desde la carne hasta la tortilla.
-    /// Sigue la posición actual de la tortilla (por si está en la mano y se mueve).
-    /// </summary>
-    private IEnumerator VolarEnCurva(GameObject trozo, Vector3 inicio, Transform tortillaTarget)
-    {
-        Debug.Log("[MeatCutter] Iniciando vuelo en curva. Altura: " + alturaCurva + "m, Duración: " + tiempoDeVuelo + "s");
-        float tiempoTranscurrido = 0f;
-        bool logMitad = false;
-
-        while (tiempoTranscurrido < tiempoDeVuelo)
-        {
-            if (trozo == null)
-            {
-                Debug.LogWarning("[MeatCutter] El trozo fue destruido durante el vuelo.");
-                yield break;
-            }
-
-            // Si la tortilla fue destruida durante el vuelo, destruir el trozo
-            if (tortillaTarget == null)
-            {
-                Debug.LogWarning("[MeatCutter] La tortilla destino fue destruida durante el vuelo. Destruyendo trozo.");
-                Destroy(trozo);
-                yield break;
-            }
-
-            tiempoTranscurrido += Time.deltaTime;
-            float t = Mathf.Clamp01(tiempoTranscurrido / tiempoDeVuelo);
-
-            // Log a la mitad del vuelo
-            if (!logMitad && t >= 0.5f)
-            {
-                Debug.Log("[MeatCutter] Trozo a mitad de vuelo (punto más alto del arco)");
-                logMitad = true;
-            }
-
-            // Destino actualizado en tiempo real (la tortilla puede moverse si está en la mano)
-            Vector3 destino = tortillaTarget.position;
-
-            // Punto de control del arco (punto medio elevado)
-            Vector3 puntoMedio = (inicio + destino) / 2f;
-            puntoMedio.y += alturaCurva;
-
-            // Bezier cuadrático: (1-t)²·A + 2·(1-t)·t·B + t²·C
-            Vector3 posicion =
-                Mathf.Pow(1f - t, 2f) * inicio +
-                2f * (1f - t) * t * puntoMedio +
-                Mathf.Pow(t, 2f) * destino;
-
-            trozo.transform.position = posicion;
-
-            // Rotar durante el vuelo para efecto visual
-            trozo.transform.Rotate(Vector3.forward, 360f * Time.deltaTime, Space.Self);
-
-            yield return null;
-        }
-
-        // Posición final: sobre la tortilla
-        if (trozo != null && tortillaTarget != null)
-        {
-            trozo.transform.position = tortillaTarget.position;
-
-            // Hacer que el trozo sea hijo de la tortilla para que se mueva con ella
-            trozo.transform.SetParent(tortillaTarget);
-
-            Debug.Log("[MeatCutter] >>> TROZO LLEGÓ A LA TORTILLA: " + tortillaTarget.name + " <<<");
-        }
+        return direccion;
     }
 }

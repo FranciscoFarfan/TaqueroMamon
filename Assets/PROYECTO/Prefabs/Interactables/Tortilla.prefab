@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 466875882965090408}
   m_Layer: 0
   m_Name: Tortilla
-  m_TagString: Untagged
+  m_TagString: Tortilla
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

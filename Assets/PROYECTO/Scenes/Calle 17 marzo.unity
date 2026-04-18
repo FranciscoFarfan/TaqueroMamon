@@ -22653,7 +22653,7 @@ GameObject:
   - component: {fileID: 6434125581584539029}
   m_Layer: 0
   m_Name: Sidewalk-material
-  m_TagString: Suelo
+  m_TagString: Floor
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -25040,10 +25040,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pastorPrefab: {fileID: 3579812954886435079, guid: 2633dae1fbf3b7d4daa914fa3612cc76, type: 3}
-  alturaCurva: 1
-  tiempoDeVuelo: 0.8
+  fuerzaLanzamiento: 3
+  useKnifeDirection: 1
+  randomSpread: 0.3
   cooldownCorte: 0.5
   puntoDeSpawn: {fileID: 0}
+  cutSound: {fileID: 0}
 --- !u!1 &2819371648537769657
 GameObject:
   m_ObjectHideFlags: 0
@@ -35528,7 +35530,7 @@ GameObject:
   - component: {fileID: 6981331205939314998}
   m_Layer: 0
   m_Name: Piso
-  m_TagString: Untagged
+  m_TagString: Floor
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -40232,7 +40234,7 @@ GameObject:
   - component: {fileID: 4113357486297979390}
   m_Layer: 0
   m_Name: Sidewalk-material
-  m_TagString: Suelo
+  m_TagString: Floor
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -41357,7 +41359,7 @@ MeshRenderer:
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
+  m_DynamicOccludee: 0
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
@@ -45460,7 +45462,7 @@ GameObject:
   - component: {fileID: 8152066022313584039}
   m_Layer: 0
   m_Name: road-material
-  m_TagString: Suelo
+  m_TagString: Floor
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -57078,7 +57080,7 @@ GameObject:
   - component: {fileID: 5229119378419489744}
   m_Layer: 0
   m_Name: road-material
-  m_TagString: Suelo
+  m_TagString: Floor
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

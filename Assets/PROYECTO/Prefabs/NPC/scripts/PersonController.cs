@@ -1,5 +1,11 @@
 using UnityEngine;
 
+/// <summary>
+/// PersonController — Controla el movimiento del NPC hacia su spot en la fila
+/// y hacia la salida cuando termina.
+///
+/// Modificado para notificar a PersonInteraction cuando llega al spot.
+/// </summary>
 public class PersonController : MonoBehaviour
 {
     public GameObject exitPoint;
@@ -10,12 +16,14 @@ public class PersonController : MonoBehaviour
     private int spotIndex;
     private QueueManager queueManager;
     private Animator animator;
+    private PersonInteraction interaction;
     private bool arrived = false;
-    private bool isLeaving = false; // ← nueva variable para saber si está saliendo
+    private bool isLeaving = false;
 
     void Start()
     {
         animator = GetComponent<Animator>();
+        interaction = GetComponent<PersonInteraction>();
         animator.SetBool("isWalking", true);
     }
 
@@ -29,7 +37,7 @@ public class PersonController : MonoBehaviour
     public void LeaveScene()
     {
         arrived = false;
-        isLeaving = true; // ← marca que está saliendo
+        isLeaving = true;
         destination = exitPoint.transform;
     }
 
@@ -48,18 +56,22 @@ public class PersonController : MonoBehaviour
 
         if (Vector3.Distance(transform.position, destination.position) <= stoppingDistance)
         {
-            if (isLeaving) // si está saliendo, se destruye
+            if (isLeaving)
             {
                 Destroy(gameObject);
                 return;
             }
 
-            // llegó al spot de la fila
+            // Llegó al spot de la fila
             arrived = true;
             transform.position = destination.position;
             transform.rotation = Quaternion.LookRotation(dir) * Quaternion.Euler(0, 87, 0);
             animator.SetBool("isWalking", false);
             animator.SetBool("isWaiting", true);
+
+            // Notificar a PersonInteraction que llegó
+            if (interaction != null)
+                interaction.NotifyArrived();
         }
     }
 }
