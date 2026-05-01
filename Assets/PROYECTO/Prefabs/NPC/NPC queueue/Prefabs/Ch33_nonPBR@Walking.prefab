@@ -144,3 +144,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   detectionRadius: 1.5
+  plateTag: Plato
+  pointsPerMatchingTaco: 10
+  orderBubble: {fileID: 3295617639673728844, guid: b8a94af5d7e6fc24789e025abc2db457, type: 3}
+  orderBubbleText: {fileID: 0}
