@@ -291,12 +291,12 @@ Verificar que el **GameManager** tiene:
 ## Checklist Final
 
 ### Tags ✅
-- [ ] `Tortilla` creado y asignado al prefab Tortilla
-- [ ] `Cuchillo` asignado al prefab Meat Cleaver
-- [ ] `Pastor` creado y asignado al prefab Pastor (trozo)
-- [ ] `taco` creado y asignado a TacoPastor, TacoBistec, TacoQueso, TacoListo
-- [ ] `Plato` creado y asignado al prefab Plato
-- [ ] `Floor` asignado al suelo
+- [x] `Tortilla` creado y asignado al prefab Tortilla
+- [x] `Cuchillo` asignado al prefab Meat Cleaver
+- [x] `Pastor` creado y asignado al prefab Pastor (trozo)
+- [x] `taco` creado y asignado a TacoPastor, TacoBistec, TacoQueso, TacoListo
+- [x] `Plato` creado y asignado al prefab Plato
+- [x] `Floor` asignado al suelo
 
 ### Prefabs ✅
 - [ ] Tortilla tiene: TortillaManager, TacoAssembler, XRGrabInteractable, Rigidbody, DroppableObject
