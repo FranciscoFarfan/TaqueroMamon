@@ -323,7 +323,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e94cda2871373d4c9bb0a5e547eb663, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cookTime: 5
+  cookTime: 10
   burnTime: 45
   rawMaterial: {fileID: -1161241544073198145, guid: bdb382c74aad89f4abfc0a5c934a414e, type: 3}
   cookedMaterial: {fileID: 2100000, guid: 0e135af92a215c347b2feeca3f3f69cc, type: 2}

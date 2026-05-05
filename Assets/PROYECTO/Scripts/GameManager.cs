@@ -114,7 +114,10 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         // Estado inicial: mostrar mundo cerrado
-        SetWorldState(gameRunning: false);
+        // SetWorldState(gameRunning: false); //CAMBIO TEMPORAL PARA PRUEBAS
+
+        //TRUCO PARA LAS PRUEBAS
+        StartGame("PRB");
     }
 
     void Update()
