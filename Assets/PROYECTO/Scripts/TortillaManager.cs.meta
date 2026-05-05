@@ -3,7 +3,12 @@ guid: 3e94cda2871373d4c9bb0a5e547eb663
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - rawMaterial: {instanceID: 0}
+  - cookedMaterial: {instanceID: 0}
+  - burntMaterial: {instanceID: 0}
+  - cookingSound: {instanceID: 0}
+  - burntSound: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
