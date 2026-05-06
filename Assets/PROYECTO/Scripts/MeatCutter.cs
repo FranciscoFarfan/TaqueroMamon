@@ -122,12 +122,12 @@ public class MeatCutter : MonoBehaviour
 
         if (useKnifeDirection)
         {
-            // Usar la dirección forward del cuchillo (la normal de corte)
-            direccion = cuchillo.forward;
+            // Usar la dirección opuesta al forward del cuchillo
+            direccion = -cuchillo.forward;
 
-            // Asegurar que tenga algo de componente hacia arriba para que no vaya al suelo
-            if (direccion.y < 0.1f)
-                direccion.y = 0.3f;
+            // Asegurar que tenga componente hacia ABAJO (-y) para que caiga a la tortilla
+            if (direccion.y > -0.1f)
+                direccion.y = -0.3f;
 
             direccion.Normalize();
         }
