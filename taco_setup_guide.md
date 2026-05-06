@@ -4,14 +4,14 @@
 
 Antes de todo, crear estos **Tags** en Unity (`Edit > Project Settings > Tags and Layers`):
 
-| Tag | ¿Ya existe? |
-|---|---|
-| `Tortilla` | Verificar |
-| `Cuchillo` | ✅ Ya se usa en MeatCutter |
-| `Pastor` | Verificar |
-| `taco` | Verificar |
-| `Plato` | Crear |
-| `Floor` | ✅ Ya se usa en DroppableObject |
+| Tag          | ¿Ya existe?                    |
+| ------------ | ------------------------------- |
+| `Tortilla` | Verificar                       |
+| `Cuchillo` | ✅ Ya se usa en MeatCutter      |
+| `Pastor`   | Verificar                       |
+| `taco`     | Verificar                       |
+| `Plato`    | Crear                           |
+| `Floor`    | ✅ Ya se usa en DroppableObject |
 
 ---
 
@@ -50,7 +50,7 @@ El prefab `Tortilla.prefab` en `Assets/PROYECTO/Prefabs/Interactables/` necesita
    - En XRI es típicamente: `XRI LeftHand Interaction/Activate` o crear una nueva
 3. Crear una nueva acción si no existe:
    - Nombre: `SecondaryButton`
-   - Binding: `<XRController>{LeftHand}/secondaryButton` 
+   - Binding: `<XRController>{LeftHand}/secondaryButton`
 4. Arrastrar esa referencia al campo `Secondary Button Action` del TacoAssembler
 
 > [!TIP]
@@ -125,6 +125,7 @@ El prefab `Plato.prefab`:
 ## Paso 5: Configurar el Comal (6 slots)
 
 1. Crear **6 GameObjects vacíos** como hijos del comal, posicionados en cada lugar donde puede ir una tortilla:
+
    ```
    Comal/
    ├─ ComalSlot1 (agregar BoxCollider trigger + ComalSocket)
@@ -134,8 +135,8 @@ El prefab `Plato.prefab`:
    ├─ ComalSlot5 (agregar BoxCollider trigger + ComalSocket)
    └─ ComalSlot6 (agregar BoxCollider trigger + ComalSocket)
    ```
-
 2. A cada slot agregar:
+
    - **BoxCollider** (o SphereCollider) → **Is Trigger = TRUE**
    - **ComalSocket** script
    - Ajustar el tamaño del collider para que cubra el área donde se pone una tortilla
@@ -198,6 +199,7 @@ El prefab `Meat Cleaver.prefab`:
 ## Paso 10: Configurar los NPCs
 
 ### En los Prefabs de NPC:
+
 Los prefabs en `Prefabs/NPC/prefabs/` ya tienen `PersonController`. Agregar:
 
 1. **PersonInteraction** (ya reescrito) — verificar que está actualizado
@@ -208,14 +210,18 @@ Los prefabs en `Prefabs/NPC/prefabs/` ya tienen `PersonController`. Agregar:
    - (Opcional) `Order Bubble` y `Order Bubble Text` si quieres mostrar el pedido sobre la cabeza
 
 ### En PersonSpawner:
+
 Ya fue modificado. Verificar que:
+
 - `People Prefabs` → Los prefabs de NPC
 - `Spawn Point` → Punto de entrada
 - `Queue Manager` → Referencia al QueueManager
 - `Exit Point` → Punto de salida
 
 ### En QueueManager:
+
 No necesita cambios, pero verificar:
+
 - `Queue Spots` → 3 posiciones de la fila (Transforms vacíos)
 
 ---
@@ -279,6 +285,7 @@ Canvas_Screens/
 ## Paso 12: GameManager
 
 Verificar que el **GameManager** tiene:
+
 - `World Active` → El GameObject con todo lo del juego activo (taquería abierta)
 - `World Inactive` → El GameObject con lo del juego inactivo (taquería cerrada)
 - `Game Duration`: 180
@@ -291,33 +298,37 @@ Verificar que el **GameManager** tiene:
 ## Checklist Final
 
 ### Tags ✅
-- [x] `Tortilla` creado y asignado al prefab Tortilla
-- [x] `Cuchillo` asignado al prefab Meat Cleaver
-- [x] `Pastor` creado y asignado al prefab Pastor (trozo)
-- [x] `taco` creado y asignado a TacoPastor, TacoBistec, TacoQueso, TacoListo
-- [x] `Plato` creado y asignado al prefab Plato
-- [x] `Floor` asignado al suelo
+
+- [X] `Tortilla` creado y asignado al prefab Tortilla
+- [X] `Cuchillo` asignado al prefab Meat Cleaver
+- [X] `Pastor` creado y asignado al prefab Pastor (trozo)
+- [X] `taco` creado y asignado a TacoPastor, TacoBistec, TacoQueso, TacoListo
+- [X] `Plato` creado y asignado al prefab Plato
+- [X] `Floor` asignado al suelo
 
 ### Prefabs ✅
-- [ ] Tortilla tiene: TortillaManager, TacoAssembler, XRGrabInteractable, Rigidbody, DroppableObject
-- [ ] TacoPastor tiene: TacoData (meatType="Pastor"), XRGrabInteractable, DroppableObject, tag "taco"
-- [ ] TacoBistec tiene: TacoData (meatType="Bistec"), XRGrabInteractable, DroppableObject, tag "taco"
-- [ ] TacoQueso tiene: TacoData (meatType="Queso"), XRGrabInteractable, DroppableObject, tag "taco"
-- [ ] Pastor (trozo) tiene: Rigidbody, Collider (trigger), DroppableObject, tag "Pastor"
-- [ ] Plato tiene: PlateSocket, XRGrabInteractable, Rigidbody, 2 colliders (1 solid + 1 trigger), tag "Plato"
-- [ ] Meat Cleaver tiene: XRGrabInteractable, Collider, tag "Cuchillo"
+
+- [X] Tortilla tiene: TortillaManager, TacoAssembler, XRGrabInteractable, Rigidbody, DroppableObject
+- [X] TacoPastor tiene: TacoData (meatType="Pastor"), XRGrabInteractable, DroppableObject, tag "taco"
+- [X] TacoBistec tiene: TacoData (meatType="Bistec"), XRGrabInteractable, DroppableObject, tag "taco"
+- [X] TacoQueso tiene: TacoData (meatType="Queso"), XRGrabInteractable, DroppableObject, tag "taco"
+- [X] Pastor (trozo) tiene: Rigidbody, Collider (trigger), DroppableObject, tag "Pastor"
+- [X] Plato tiene: PlateSocket, XRGrabInteractable, Rigidbody, 2 colliders (1 solid + 1 trigger), tag "Plato"
+- [X] Meat Cleaver tiene: XRGrabInteractable, Collider, tag "Cuchillo"
 
 ### Escena ✅
-- [ ] 6 ComalSocket en el comal (cada uno con trigger collider)
-- [ ] MeatPileSocket en cada montón de carne de la plancha
-- [ ] MeatCutter en el trompo de pastor
-- [ ] TortillaSpawner en algún punto de la escena
-- [ ] GameManager singleton en la escena
+
+- [X] 6 ComalSocket en el comal (cada uno con trigger collider)
+- [X] MeatPileSocket en cada montón de carne de la plancha
+- [X] MeatCutter en el trompo de pastor
+- [X] TortillaSpawner en algún punto de la escena
+- [X] GameManager singleton en la escena
 - [ ] PersonSpawner configurado con QueueManager
 - [ ] QueueManager con 3 spots de fila
 - [ ] UIManager con todas las referencias de UI
 
 ### UI ✅
+
 - [ ] Canvas HUD con Timer y Score
 - [ ] Canvas Tendedero con 3 OrderCardUI
 - [ ] Canvas Start Screen con input y botón
@@ -329,18 +340,21 @@ Verificar que el **GameManager** tiene:
 ## Troubleshooting
 
 ### "La tortilla no se cocina"
+
 - Verificar que el ComalSocket tiene un collider **trigger**
 - Verificar que la tortilla tiene tag `Tortilla`
 - Verificar que la tortilla tiene el componente `TortillaManager`
 - Verificar que la tortilla tiene `Rigidbody`
 
 ### "La carne no vuela al cortar"
+
 - Verificar que el cuchillo tiene tag `Cuchillo`
 - Verificar que MeatCutter tiene `pastorPrefab` asignado
 - Verificar que `GameManager.IsGameRunning == true`
 - Verificar el cooldown de corte
 
 ### "La tortilla no se convierte en taco"
+
 - Verificar que `TacoAssembler.HasMeat == true` (la carne se asignó)
 - Verificar que la tortilla está en la mano (`_isInHand == true`)
 - Verificar que el `SecondaryButtonAction` está asignado y funciona
@@ -348,6 +362,7 @@ Verificar que el **GameManager** tiene:
 - Probar en consola: el mensaje `"Presiona botón secundario para armar taco"` debería aparecer
 
 ### "El NPC no recibe el plato"
+
 - Verificar que el plato tiene tag `Plato`
 - Verificar que el plato tiene `PlateSocket` con al menos 1 taco
 - Verificar que el NPC tiene `PersonInteraction` con `_hasArrived == true`
@@ -355,11 +370,13 @@ Verificar que el **GameManager** tiene:
 - Acercar más el plato al NPC
 
 ### "No aparecen los pedidos en el tendedero"
+
 - Verificar que UIManager tiene las referencias a los `OrderCardUI`
 - Verificar que UIManager se suscribe al evento `OnOrdersChanged`
 - Verificar que GameManager genera los pedidos (ver consola)
 
 ### "Los NPCs no aparecen"
+
 - Verificar que `GameManager.IsGameRunning == true`
 - Verificar que `PersonSpawner` tiene `peoplePrefabs` asignados
 - Verificar que `QueueManager` tiene spots libres

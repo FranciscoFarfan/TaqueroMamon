@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &9182338564677262137
+--- !u!1 &3579812954886435079
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,50 +8,50 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1614595240404414809}
-  - component: {fileID: 2194896914958351225}
-  - component: {fileID: 2377947639761488391}
-  - component: {fileID: -6692939266362012892}
-  - component: {fileID: -7893682285851485653}
-  - component: {fileID: 2377171147615205603}
-  - component: {fileID: -1441474029574966672}
+  - component: {fileID: 8993409663492830028}
+  - component: {fileID: 6451043607723095813}
+  - component: {fileID: 7510847953951927923}
+  - component: {fileID: 3223570177716701549}
+  - component: {fileID: 5429023591590763450}
+  - component: {fileID: 1323312632131427192}
+  - component: {fileID: 1558463662288794793}
   m_Layer: 0
-  m_Name: TacoBistec
-  m_TagString: taco
+  m_Name: PastorTrozo
+  m_TagString: Pastor
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1614595240404414809
+--- !u!4 &8993409663492830028
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9182338564677262137}
+  m_GameObject: {fileID: 3579812954886435079}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.15, y: 0.15, z: 0.15}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
---- !u!33 &2194896914958351225
+--- !u!33 &6451043607723095813
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9182338564677262137}
-  m_Mesh: {fileID: 7414681024931760287, guid: bdb382c74aad89f4abfc0a5c934a414e, type: 3}
---- !u!23 &2377947639761488391
+  m_GameObject: {fileID: 3579812954886435079}
+  m_Mesh: {fileID: 4906932424917697129, guid: bdb382c74aad89f4abfc0a5c934a414e, type: 3}
+--- !u!23 &7510847953951927923
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9182338564677262137}
+  m_GameObject: {fileID: 3579812954886435079}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -65,7 +65,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -1161241544073198145, guid: bdb382c74aad89f4abfc0a5c934a414e, type: 3}
+  - {fileID: -4305491050607057632, guid: bdb382c74aad89f4abfc0a5c934a414e, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -87,26 +87,13 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &-6692939266362012892
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9182338564677262137}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: af9402ca8d35b7448a67bbc3a7380467, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  meatType: Bistec
---- !u!54 &-7893682285851485653
+--- !u!54 &3223570177716701549
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9182338564677262137}
+  m_GameObject: {fileID: 3579812954886435079}
   serializedVersion: 4
   m_Mass: 1
   m_Drag: 0
@@ -127,13 +114,13 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 1
---- !u!114 &2377171147615205603
+--- !u!114 &5429023591590763450
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9182338564677262137}
+  m_GameObject: {fileID: 3579812954886435079}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0ad34abafad169848a38072baa96cdb2, type: 3}
@@ -279,20 +266,43 @@ MonoBehaviour:
   m_StartingSingleGrabTransformers: []
   m_StartingMultipleGrabTransformers: []
   m_AddDefaultGrabTransformers: 1
---- !u!114 &-1441474029574966672
+--- !u!136 &1323312632131427192
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3579812954886435079}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.14
+  m_Height: 0.4
+  m_Direction: 1
+  m_Center: {x: -0.020992465, y: -0.014101196, z: 0.007843017}
+--- !u!114 &1558463662288794793
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9182338564677262137}
+  m_GameObject: {fileID: 3579812954886435079}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d163baad390ad684ba84c489dede980a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  penaltyPoints: 6
-  penaltyReason: "Taco ca\xEDdo"
+  penaltyPoints: 3
+  penaltyReason: Carne de pastor caida
   floorTag: Floor
   useVelocityFallback: 0
   velocityThreshold: -3

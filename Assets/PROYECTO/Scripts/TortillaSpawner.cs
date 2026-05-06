@@ -1,13 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// TortillaSpawner — Genera tortillas nuevas periódicamente
-/// para que el jugador siempre tenga disponibles.
-///
-/// Configuración:
-///   1. Colocar en un GameObject cerca del comal/área de trabajo.
-///   2. Asignar el prefab de tortilla y el punto de spawn.
-///   3. Solo genera tortillas durante la partida.
+/// TortillaSpawner — Mantiene siempre una tortilla disponible en el punto de spawn.
+/// Cuando el jugador retira la tortilla actual, se genera una nueva instantáneamente.
 /// </summary>
 public class TortillaSpawner : MonoBehaviour
 {
@@ -16,7 +11,7 @@ public class TortillaSpawner : MonoBehaviour
     // ═══════════════════════════════════════════════════════════════════════════
 
     [Header("Prefab")]
-    [Tooltip("Prefab de la tortilla (debe tener tag 'Tortilla', TortillaManager y TacoAssembler).")]
+    [Tooltip("Prefab de la tortilla.")]
     [SerializeField] private GameObject tortillaPrefab;
 
     [Header("Spawn")]
@@ -26,25 +21,16 @@ public class TortillaSpawner : MonoBehaviour
     [Tooltip("Máximo de tortillas que pueden existir simultáneamente en la escena.")]
     [SerializeField] private int maxTortillas = 12;
 
-    [Tooltip("Intervalo en segundos entre cada spawn.")]
-    [SerializeField] private float spawnInterval = 10f;
-
     [Header("Configuración")]
-    [Tooltip("Tag de la tortilla (para contar las existentes).")]
+    [Tooltip("Tag de la tortilla (para detectar presencia y contar).")]
     [SerializeField] private string tortillaTag = "Tortilla";
 
-    [Tooltip("Si true, genera un lote inicial al empezar la partida.")]
-    [SerializeField] private bool spawnInitialBatch = true;
+    [Tooltip("Rotación inicial en el eje X para la tortilla.")]
+    [SerializeField] private float spawnRotationX = 0f;
 
-    [Tooltip("Número de tortillas iniciales.")]
-    [SerializeField] private int initialBatchSize = 6;
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  ESTADO PRIVADO
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    private float _timer = 0f;
-    private bool _initialBatchSpawned = false;
+    [Header("Detección")]
+    [Tooltip("Radio para detectar si el punto de spawn está despejado.")]
+    [SerializeField] private float detectionRadius = 0.1f;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  UNITY
@@ -52,26 +38,10 @@ public class TortillaSpawner : MonoBehaviour
 
     void Update()
     {
-        if (GameManager.Instance == null || !GameManager.Instance.IsGameRunning) 
-        {
-            _initialBatchSpawned = false;
-            return;
-        }
+        // Solo funciona si el juego está en marcha
+        if (GameManager.Instance != null && !GameManager.Instance.IsGameRunning) return;
 
-        // Spawn inicial al comenzar la partida
-        if (spawnInitialBatch && !_initialBatchSpawned)
-        {
-            _initialBatchSpawned = true;
-            SpawnBatch(initialBatchSize);
-        }
-
-        // Spawn periódico
-        _timer += Time.deltaTime;
-        if (_timer >= spawnInterval)
-        {
-            _timer = 0f;
-            TrySpawnTortilla();
-        }
+        TrySpawnTortilla();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -80,24 +50,31 @@ public class TortillaSpawner : MonoBehaviour
 
     private void TrySpawnTortilla()
     {
+        // 1. Verificar si el punto de aparición está despejado
+        if (!IsSpawnPointClear()) return;
+
+        // 2. Verificar límite máximo de la escena
         int currentCount = GameObject.FindGameObjectsWithTag(tortillaTag).Length;
         if (currentCount >= maxTortillas) return;
 
+        // 3. Generar la tortilla
         SpawnOneTortilla();
     }
 
-    private void SpawnBatch(int count)
+    private bool IsSpawnPointClear()
     {
-        for (int i = 0; i < count; i++)
+        Vector3 pos = spawnPoint != null ? spawnPoint.position : transform.position;
+        
+        // Buscamos cualquier objeto con el tag de tortilla en el radio de detección
+        Collider[] colliders = Physics.OverlapSphere(pos, detectionRadius);
+        foreach (var col in colliders)
         {
-            int currentCount = GameObject.FindGameObjectsWithTag(tortillaTag).Length;
-            if (currentCount >= maxTortillas) break;
-
-            SpawnOneTortilla(i * 0.05f); // offset para que no se amontonen exactamente
+            if (col.CompareTag(tortillaTag)) return false;
         }
+        return true;
     }
 
-    private void SpawnOneTortilla(float offsetY = 0f)
+    private void SpawnOneTortilla()
     {
         if (tortillaPrefab == null)
         {
@@ -106,13 +83,9 @@ public class TortillaSpawner : MonoBehaviour
         }
 
         Vector3 pos = spawnPoint != null ? spawnPoint.position : transform.position;
-        pos.y += offsetY;
+        Quaternion rotation = Quaternion.Euler(spawnRotationX, 0f, 0f);
 
-        // Pequeña variación horizontal para que no se apilen exactamente
-        pos.x += Random.Range(-0.05f, 0.05f);
-        pos.z += Random.Range(-0.05f, 0.05f);
-
-        Instantiate(tortillaPrefab, pos, Quaternion.identity);
-        Debug.Log($"[TortillaSpawner] Tortilla generada en {pos}");
+        Instantiate(tortillaPrefab, pos, rotation);
+        Debug.Log($"[TortillaSpawner] Tortilla repuesta en {pos}");
     }
 }

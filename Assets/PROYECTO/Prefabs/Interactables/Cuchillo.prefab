@@ -85,7 +85,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 24c3e9917bf39c64194f44c0f11ecc78, type: 2}
     - target: {fileID: 919132149155446097, guid: f3597cc41bd2c35449b685ee4e7a3531, type: 3}
       propertyPath: m_Name
-      value: Meat Cleaver
+      value: Cuchillo
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: f3597cc41bd2c35449b685ee4e7a3531, type: 3}
       propertyPath: m_TagString
@@ -139,7 +139,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
 --- !u!114 &6698430845063117866
 MonoBehaviour:
   m_ObjectHideFlags: 0
