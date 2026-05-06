@@ -59,6 +59,9 @@ public class GameManager : MonoBehaviour
     [Tooltip("Lista de tipos de carne que pueden pedirse. Ajústala a tus strings definitivos.")]
     [SerializeField] private string[] availableMeats = { "Pastor", "Bistec", "Chorizo", "Suadero", "Carnitas" };
 
+    [Tooltip("Peso del Pastor en la selección aleatoria. 1 = igual que los demás, 2.5 = 2.5× más probable.")]
+    [SerializeField] private float pastorWeight = 2.5f;
+
     [Header("Economía")]
     [Tooltip("Puntos base por taco (reward = tacoCount * pointsPerTaco).")]
     [SerializeField] private int pointsPerTaco = 10;
@@ -296,13 +299,53 @@ public class GameManager : MonoBehaviour
         if (_activeOrders.Count >= maxActiveOrders) return;
 
         int    tacoCount = Random.Range(1, 6);          // 1–5 tacos
-        string meat      = availableMeats[Random.Range(0, availableMeats.Length)];
+        string meat      = PickWeightedMeat();
         int    reward    = tacoCount * pointsPerTaco;
 
         TacoOrder newOrder = new TacoOrder(_nextOrderId++, tacoCount, meat, reward);
         _activeOrders.Add(newOrder);
 
         Debug.Log($"[GameManager] Nuevo pedido #{newOrder.OrderId}: {tacoCount}x {meat} (${reward})");
+    }
+
+    /// <summary>
+    /// Selecciona una carne con peso ponderado.
+    /// Pastor tiene más probabilidad (pastorWeight). Intenta no repetir carne
+    /// ya activa en otro pedido (hasta 3 intentos).
+    /// </summary>
+    private string PickWeightedMeat()
+    {
+        string chosen = null;
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            chosen = SampleWeightedMeat();
+            // Si no hay duplicado entre pedidos activos, o ya no quedan opciones únicas, aceptar
+            bool alreadyActive = _activeOrders.Exists(o => o.MeatType == chosen);
+            if (!alreadyActive || _activeOrders.Count >= availableMeats.Length)
+                break;
+        }
+        return chosen;
+    }
+
+    /// <summary>
+    /// Samplea una carne con probabilidad ponderada:
+    /// "Pastor" tiene peso <c>pastorWeight</c>, las demás tienen peso 1.
+    /// </summary>
+    private string SampleWeightedMeat()
+    {
+        float totalWeight = 0f;
+        foreach (string m in availableMeats)
+            totalWeight += (m == "Pastor") ? pastorWeight : 1f;
+
+        float roll = Random.Range(0f, totalWeight);
+        float cumulative = 0f;
+        foreach (string m in availableMeats)
+        {
+            cumulative += (m == "Pastor") ? pastorWeight : 1f;
+            if (roll <= cumulative)
+                return m;
+        }
+        return availableMeats[availableMeats.Length - 1];
     }
 
     /// <summary>Guarda nombre y puntuación en un archivo .txt.</summary>

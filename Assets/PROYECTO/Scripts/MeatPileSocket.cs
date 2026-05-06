@@ -2,10 +2,12 @@ using UnityEngine;
 
 /// <summary>
 /// MeatPileSocket — Se coloca en cada montón de carne estática sobre la plancha
-/// (Bistec, Queso, Chorizo, etc.).
+/// (Bistec, Suadero, Chorizo, etc.).
 ///
-/// Cuando la tortilla (en la mano del jugador, orientada hacia abajo) toca el montón,
-/// marca el tipo de carne en el TacoAssembler de la tortilla.
+/// Ya NO asigna carne automáticamente al tocar la tortilla.
+/// En cambio, expone TryServeMeat() que es llamado por TacoAssembler
+/// cuando el jugador presiona el botón del control CON la tortilla cara abajo
+/// sobre el montón.
 ///
 /// Configuración:
 ///   1. Colocar en el GameObject del montón de carne.
@@ -23,6 +25,12 @@ public class MeatPileSocket : MonoBehaviour
     [Header("Configuración de carne")]
     [Tooltip("Tipo de carne que representa este montón. Debe coincidir con GameManager.availableMeats.")]
     [SerializeField] private string meatType = "Bistec";
+
+    [Header("Orientación")]
+    [Tooltip("Umbral para considerar la tortilla 'cara abajo'. " +
+             "La tortilla.transform.up.y debe ser MENOR que -faceDownThreshold. " +
+             "0.7 ≈ 45° pasado el plano horizontal hacia abajo.")]
+    [SerializeField] private float faceDownThreshold = 0.7f;
 
     [Header("Tags")]
     [Tooltip("Tag de la tortilla.")]
@@ -55,44 +63,59 @@ public class MeatPileSocket : MonoBehaviour
         _audioSource.playOnAwake = false;
     }
 
-    void OnTriggerEnter(Collider other)
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  API PÚBLICA
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Llamado por TacoAssembler cuando el jugador presiona el botón del control
+    /// mientras la tortilla está sobre este montón.
+    ///
+    /// Requisitos para que tenga éxito:
+    ///   - La tortilla aún no tiene carne.
+    ///   - La tortilla está cocida (Cooked).
+    ///   - La tortilla está orientada cara abajo (transform.up.y &lt; -faceDownThreshold).
+    /// </summary>
+    /// <param name="assembler">TacoAssembler de la tortilla que intenta recibir carne.</param>
+    /// <returns>true si la carne fue asignada, false en caso contrario.</returns>
+    public bool TryServeMeat(TacoAssembler assembler)
     {
-        if (!other.CompareTag(tortillaTag)) return;
-
-        // Obtener el TacoAssembler de la tortilla
-        TacoAssembler assembler = other.GetComponentInParent<TacoAssembler>();
         if (assembler == null)
-        {
-            Debug.LogWarning($"[MeatPileSocket] Tortilla '{other.name}' no tiene TacoAssembler.");
-            return;
-        }
+            return false;
 
-        // Solo aceptar tortillas cocidas que no tengan carne aún
         if (assembler.HasMeat)
         {
-            Debug.Log($"[MeatPileSocket] Tortilla '{other.name}' ya tiene carne.");
-            return;
+            Debug.Log($"[MeatPileSocket] '{assembler.name}' ya tiene carne '{assembler.MeatType}'.");
+            return false;
         }
 
-        // Verificar que la tortilla está cocida
-        TortillaManager tortillaManager = other.GetComponentInParent<TortillaManager>();
-        if (tortillaManager != null && !tortillaManager.IsCooked)
+        // Verificar que la tortilla esté cocida
+        TortillaManager tm = assembler.GetComponent<TortillaManager>();
+        if (tm != null && !tm.IsCooked)
         {
-            Debug.Log($"[MeatPileSocket] Tortilla '{other.name}' no está cocida aún. Estado: {tortillaManager.CurrentState}");
-            return;
+            Debug.Log($"[MeatPileSocket] Tortilla no está cocida (Estado: {tm.CurrentState}). Gira el comal primero.");
+            return false;
         }
 
-        // Asignar la carne
+        // Verificar orientación: cara abajo → transform.up apunta hacia -Y del mundo
+        float upY = assembler.transform.up.y;
+        if (upY > -faceDownThreshold)
+        {
+            Debug.Log($"[MeatPileSocket] Tortilla no está cara abajo (up.y={upY:F2}, necesita < -{faceDownThreshold:F2}).");
+            return false;
+        }
+
+        // ¡Servir carne!
         assembler.SetMeatType(meatType);
 
-        // Feedback visual y de audio
         if (serveMeatSound != null && _audioSource != null)
             _audioSource.PlayOneShot(serveMeatSound);
 
         if (serveParticles != null)
             serveParticles.Play();
 
-        Debug.Log($"[MeatPileSocket] Carne '{meatType}' asignada a tortilla '{other.name}'.");
+        Debug.Log($"[MeatPileSocket] Carne '{meatType}' servida a '{assembler.name}' (cara abajo + botón). ✓");
+        return true;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -103,8 +126,8 @@ public class MeatPileSocket : MonoBehaviour
     {
         Collider col = GetComponent<Collider>();
         if (col != null && !col.isTrigger)
-        {
             col.isTrigger = true;
-        }
+
+        faceDownThreshold = Mathf.Clamp01(faceDownThreshold);
     }
 }

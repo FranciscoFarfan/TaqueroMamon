@@ -76,6 +76,9 @@ public class TacoAssembler : MonoBehaviour
     private TortillaManager _tortillaManager;
     private AudioSource _audioSource;
 
+    /// <summary>Montón de carne sobre el que está la tortilla en este momento (null si ninguno).</summary>
+    private MeatPileSocket _currentMeatPile = null;
+
     // ═══════════════════════════════════════════════════════════════════════════
     //  PROPIEDADES PÚBLICAS
     // ═══════════════════════════════════════════════════════════════════════════
@@ -162,33 +165,49 @@ public class TacoAssembler : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        // Detectar trozos de pastor que caen/vuelan
-        if (!other.CompareTag(pastorTag)) return;
-
-        if (_hasMeat)
+        // ── Pastor: trozo volando del trompo ────────────────────────────────
+        if (other.CompareTag(pastorTag))
         {
-            Debug.Log("[TacoAssembler] Ya tiene carne, ignorando trozo de pastor.");
+            if (_hasMeat)
+            {
+                Debug.Log("[TacoAssembler] Ya tiene carne, ignorando trozo de pastor.");
+                return;
+            }
+
+            if (_tortillaManager != null && !_tortillaManager.IsCooked)
+            {
+                Debug.Log("[TacoAssembler] Tortilla no cocida, el trozo de pastor se ignora.");
+                return;
+            }
+
+            SetMeatType("Pastor");
+
+            if (meatCatchSound != null && _audioSource != null)
+                _audioSource.PlayOneShot(meatCatchSound);
+
+            Destroy(other.gameObject);
+            Debug.Log("[TacoAssembler] ¡Trozo de pastor atrapado por la tortilla!");
             return;
         }
 
-        // Verificar que la tortilla esté cocida
-        if (_tortillaManager != null && !_tortillaManager.IsCooked)
+        // ── Montón de carne: registrar para servirla con botón ──────────────
+        MeatPileSocket pile = other.GetComponentInParent<MeatPileSocket>();
+        if (pile != null)
         {
-            Debug.Log("[TacoAssembler] Tortilla no cocida, el trozo de pastor se ignora.");
-            return;
+            _currentMeatPile = pile;
+            Debug.Log($"[TacoAssembler] Tortilla sobre montón '{other.transform.root.name}'. Gira cara abajo y presiona el botón para servir.");
         }
+    }
 
-        // Asignar pastor como tipo de carne
-        SetMeatType("Pastor");
-
-        // Feedback de audio
-        if (meatCatchSound != null && _audioSource != null)
-            _audioSource.PlayOneShot(meatCatchSound);
-
-        // Destruir el trozo de pastor (ya fue "atrapado" por la tortilla)
-        Destroy(other.gameObject);
-
-        Debug.Log("[TacoAssembler] ¡Trozo de pastor atrapado por la tortilla!");
+    void OnTriggerExit(Collider other)
+    {
+        // Limpiar referencia al montón cuando la tortilla sale del trigger
+        MeatPileSocket pile = other.GetComponentInParent<MeatPileSocket>();
+        if (pile != null && pile == _currentMeatPile)
+        {
+            _currentMeatPile = null;
+            Debug.Log("[TacoAssembler] Tortilla salió del montón de carne.");
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -211,14 +230,27 @@ public class TacoAssembler : MonoBehaviour
 
     private void OnSecondaryButtonPressed(InputAction.CallbackContext context)
     {
-        // Solo convertir si:
-        // 1. Tiene carne asignada
-        // 2. Está en la mano del jugador
-        // 3. El juego está en curso
-        if (!_hasMeat || !_isInHand) return;
+        // Siempre requerir que la tortilla esté en la mano
+        if (!_isInHand) return;
 
         if (GameManager.Instance != null && !GameManager.Instance.IsGameRunning) return;
 
+        // ── CASO 1: Sin carne → intentar servir desde el montón bajo la tortilla
+        if (!_hasMeat)
+        {
+            if (_currentMeatPile != null)
+            {
+                // TryServeMeat verifica: cocida + cara abajo
+                _currentMeatPile.TryServeMeat(this);
+            }
+            else
+            {
+                Debug.Log("[TacoAssembler] Botón presionado, pero no hay montón de carne bajo la tortilla.");
+            }
+            return;
+        }
+
+        // ── CASO 2: Ya tiene carne → convertir en taco
         ConvertToTaco();
     }
 
