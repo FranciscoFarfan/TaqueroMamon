@@ -323,15 +323,15 @@ Verificar que el **GameManager** tiene:
 - [X] MeatCutter en el trompo de pastor
 - [X] TortillaSpawner en algún punto de la escena
 - [X] GameManager singleton en la escena
-- [ ] PersonSpawner configurado con QueueManager
-- [ ] QueueManager con 3 spots de fila
+- [X] PersonSpawner configurado con QueueManager
+- [X] QueueManager con 3 spots de fila
 - [ ] UIManager con todas las referencias de UI
 
 ### UI ✅
 
-- [ ] Canvas HUD con Timer y Score
-- [ ] Canvas Tendedero con 3 OrderCardUI
-- [ ] Canvas Start Screen con input y botón
+- [X] Canvas HUD con Timer y Score
+- [X] Canvas Tendedero con 3 OrderCardUI
+- [X] Canvas Start Screen con input y botón
 - [ ] Canvas Game Over con score final y botón restart
 - [ ] UIManager tiene TODAS las referencias
 

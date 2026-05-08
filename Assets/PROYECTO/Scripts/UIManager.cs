@@ -9,20 +9,34 @@ using TMPro;
 /// Se suscribe a los eventos del GameManager para actualizar:
 ///   - HUD: Timer y Score
 ///   - Tendedero: Tarjetas de pedidos
-///   - Pantallas: Inicio y Game Over
+///   - Pantallas: Inicio, Game Over, Name Entry, Leaderboard
+///
+/// El Game Over se posiciona frente a la cámara VR automáticamente.
+/// El Name Entry usa 3 caracteres con flechas ↑↓ tipo arcade.
 ///
 /// Configuración:
 ///   1. Colocar en el Canvas principal de la escena.
 ///   2. Asignar todas las referencias de UI en el Inspector.
-///   3. El Canvas puede ser WorldSpace (para VR) o ScreenSpace.
+///   3. El Game Over y Name Entry deben ser Canvas WorldSpace separados.
 /// </summary>
 public class UIManager : MonoBehaviour
 {
     // ═══════════════════════════════════════════════════════════════════════════
-    //  SINGLETON (opcional, para acceso global)
+    //  SINGLETON
     // ═══════════════════════════════════════════════════════════════════════════
 
     public static UIManager Instance { get; private set; }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  INSPECTOR — VR CAMERA
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    [Header("VR Camera")]
+    [Tooltip("Referencia a la Main Camera del XR Rig (para posicionar Game Over frente al jugador).")]
+    [SerializeField] private Camera vrCamera;
+
+    [Tooltip("Distancia frente a la cámara donde aparece el Game Over.")]
+    [SerializeField] private float gameOverDistance = 1.5f;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  INSPECTOR — HUD
@@ -55,35 +69,81 @@ public class UIManager : MonoBehaviour
     [SerializeField] private OrderCardUI[] orderCards;
 
     // ═══════════════════════════════════════════════════════════════════════════
+    //  INSPECTOR — MENÚ PRINCIPAL (MenuBG / ScoreBG)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    [Header("Menú principal")]
+    [Tooltip("Contenedor del menú principal (MenuBG).")]
+    [SerializeField] private GameObject menuBG;
+
+    [Tooltip("Contenedor del leaderboard (ScoreBG).")]
+    [SerializeField] private GameObject scoreBG;
+
+    [Tooltip("Botón en MenuBG para ir a ScoreBG.")]
+    [SerializeField] private Button viewScoresButton;
+
+    [Tooltip("Botón en ScoreBG para volver a MenuBG.")]
+    [SerializeField] private Button backToMenuButton;
+
+    [Tooltip("Texto TMP donde se muestra el top 10 (dentro de ScoreBG).")]
+    [SerializeField] private TMP_Text leaderboardText;
+
+    // ═══════════════════════════════════════════════════════════════════════════
     //  INSPECTOR — PANTALLA DE INICIO
     // ═══════════════════════════════════════════════════════════════════════════
 
     [Header("Pantalla de inicio")]
-    [Tooltip("Contenedor de la pantalla de inicio.")]
+    [Tooltip("Contenedor de la pantalla de inicio (StartBG o startScreen).")]
     [SerializeField] private GameObject startScreen;
-
-    [Tooltip("Input para el nombre del jugador (3 caracteres).")]
-    [SerializeField] private TMP_InputField playerNameInput;
 
     [Tooltip("Botón para iniciar la partida.")]
     [SerializeField] private Button startButton;
 
     // ═══════════════════════════════════════════════════════════════════════════
-    //  INSPECTOR — PANTALLA DE GAME OVER
+    //  INSPECTOR — GAME OVER (Canvas WorldSpace separado)
     // ═══════════════════════════════════════════════════════════════════════════
 
-    [Header("Pantalla de Game Over")]
-    [Tooltip("Contenedor de la pantalla de game over.")]
+    [Header("Game Over")]
+    [Tooltip("Canvas/GameObject del Game Over (WorldSpace separado, se reposiciona frente a cámara).")]
     [SerializeField] private GameObject gameOverScreen;
 
     [Tooltip("Texto que muestra el puntaje final.")]
     [SerializeField] private TMP_Text finalScoreText;
 
-    [Tooltip("Texto que muestra el nombre del jugador.")]
-    [SerializeField] private TMP_Text playerNameText;
+    [Tooltip("Mensaje que aparece si el jugador entró al top 10.")]
+    [SerializeField] private GameObject topTenMessage;
 
-    [Tooltip("Botón para reiniciar (volver a la pantalla de inicio).")]
-    [SerializeField] private Button restartButton;
+    [Tooltip("Botón para guardar el puntaje (solo visible si es top 10).")]
+    [SerializeField] private Button saveScoreButton;
+
+    [Tooltip("Botón de restart rápido.")]
+    [SerializeField] private Button quickRestartButton;
+
+    [Tooltip("Botón para ir al menú principal.")]
+    [SerializeField] private Button gameOverMenuButton;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  INSPECTOR — NAME ENTRY (Canvas WorldSpace separado)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    [Header("Name Entry (Top 10)")]
+    [Tooltip("Canvas/GameObject del name entry (WorldSpace separado, se posiciona frente a cámara).")]
+    [SerializeField] private GameObject nameEntryScreen;
+
+    [Tooltip("Los 3 textos TMP para cada carácter del nombre (array de 3).")]
+    [SerializeField] private TMP_Text[] nameChars;
+
+    [Tooltip("Los 3 botones ↑ para cada carácter (array de 3).")]
+    [SerializeField] private Button[] charUpButtons;
+
+    [Tooltip("Los 3 botones ↓ para cada carácter (array de 3).")]
+    [SerializeField] private Button[] charDownButtons;
+
+    [Tooltip("Botón OK para confirmar el nombre y guardar.")]
+    [SerializeField] private Button nameOkButton;
+
+    [Tooltip("Botón para cancelar e ir al menú.")]
+    [SerializeField] private Button nameMenuButton;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  INSPECTOR — AUDIO
@@ -107,6 +167,10 @@ public class UIManager : MonoBehaviour
     private int _lastCountdownSecond = -1;
     private int _previousScore = 0;
 
+    // Name entry state
+    private char[] _currentNameChars = { 'A', 'A', 'A' };
+    private int _pendingScore = 0;
+
     // ═══════════════════════════════════════════════════════════════════════════
     //  UNITY
     // ═══════════════════════════════════════════════════════════════════════════
@@ -128,25 +192,40 @@ public class UIManager : MonoBehaviour
 
     void OnEnable()
     {
-        // Suscribirse a los eventos del GameManager (puede que aún no exista en Awake)
         SubscribeToEvents();
     }
 
     void Start()
     {
-        // Intentar suscribirse de nuevo por si el GameManager se creó después
+        // Suscribirse de nuevo por si el GameManager se creó después
         SubscribeToEvents();
 
-        // Configurar botones
+        // Configurar botones — Inicio
         if (startButton != null)
             startButton.onClick.AddListener(OnStartButtonPressed);
 
-        if (restartButton != null)
-            restartButton.onClick.AddListener(OnRestartButtonPressed);
+        // Configurar botones — Game Over
+        if (quickRestartButton != null)
+            quickRestartButton.onClick.AddListener(OnQuickRestartPressed);
+        if (saveScoreButton != null)
+            saveScoreButton.onClick.AddListener(OnSaveScorePressed);
+        if (gameOverMenuButton != null)
+            gameOverMenuButton.onClick.AddListener(OnGameOverMenuPressed);
 
-        // Limitar el input del nombre a 3 caracteres
-        if (playerNameInput != null)
-            playerNameInput.characterLimit = 3;
+        // Configurar botones — Name Entry
+        if (nameOkButton != null)
+            nameOkButton.onClick.AddListener(OnNameOkPressed);
+        if (nameMenuButton != null)
+            nameMenuButton.onClick.AddListener(OnNameMenuPressed);
+
+        // Configurar botones de flechas ↑↓
+        SetupCharButtons();
+
+        // Configurar botones — Menú / Scores toggle
+        if (viewScoresButton != null)
+            viewScoresButton.onClick.AddListener(OnViewScoresPressed);
+        if (backToMenuButton != null)
+            backToMenuButton.onClick.AddListener(OnBackToMenuPressed);
 
         // Estado inicial: mostrar pantalla de inicio
         ShowStartScreen();
@@ -162,6 +241,56 @@ public class UIManager : MonoBehaviour
         if (GameManager.Instance == null || !GameManager.Instance.IsGameRunning) return;
 
         UpdateTimer();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  SETUP DE BOTONES DE FLECHAS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    private void SetupCharButtons()
+    {
+        if (charUpButtons != null)
+        {
+            for (int i = 0; i < charUpButtons.Length && i < 3; i++)
+            {
+                if (charUpButtons[i] == null) continue;
+                int index = i; // Capturar para el closure
+                charUpButtons[i].onClick.AddListener(() => CycleChar(index, 1));
+            }
+        }
+
+        if (charDownButtons != null)
+        {
+            for (int i = 0; i < charDownButtons.Length && i < 3; i++)
+            {
+                if (charDownButtons[i] == null) continue;
+                int index = i;
+                charDownButtons[i].onClick.AddListener(() => CycleChar(index, -1));
+            }
+        }
+    }
+
+    /// <summary>Incrementa o decrementa un carácter del nombre (A-Z circular).</summary>
+    private void CycleChar(int charIndex, int direction)
+    {
+        if (charIndex < 0 || charIndex >= 3) return;
+
+        int current = _currentNameChars[charIndex] - 'A';
+        current = (current + direction + 26) % 26; // Wrap circular A-Z
+        _currentNameChars[charIndex] = (char)('A' + current);
+
+        RefreshNameDisplay();
+    }
+
+    /// <summary>Actualiza los textos visuales del name entry.</summary>
+    private void RefreshNameDisplay()
+    {
+        if (nameChars == null) return;
+        for (int i = 0; i < nameChars.Length && i < 3; i++)
+        {
+            if (nameChars[i] != null)
+                nameChars[i].text = _currentNameChars[i].ToString();
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -258,15 +387,51 @@ public class UIManager : MonoBehaviour
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
+    //  POSICIONAMIENTO FRENTE A CÁMARA VR
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Posiciona un panel/canvas frente a la cámara VR del jugador,
+    /// manteniendo la orientación horizontal (sin inclinar hacia arriba/abajo).
+    /// </summary>
+    private void PositionInFrontOfCamera(GameObject panel)
+    {
+        if (vrCamera == null || panel == null) return;
+
+        Transform cam = vrCamera.transform;
+        Vector3 forward = cam.forward;
+        forward.y = 0f; // Mantener horizontal
+        if (forward.sqrMagnitude < 0.001f)
+            forward = Vector3.forward; // Fallback si mira directo arriba/abajo
+
+        forward.Normalize();
+
+        // Posicionar a la altura de los ojos del jugador
+        Vector3 targetPos = cam.position + forward * gameOverDistance;
+        panel.transform.position = targetPos;
+
+        // Rotar para mirar hacia la cámara
+        panel.transform.rotation = Quaternion.LookRotation(forward);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
     //  PANTALLAS
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// <summary>Muestra la pantalla de inicio.</summary>
+    /// <summary>Muestra la pantalla de inicio (menú principal).</summary>
     private void ShowStartScreen()
     {
         if (startScreen != null) startScreen.SetActive(true);
         if (gameOverScreen != null) gameOverScreen.SetActive(false);
+        if (nameEntryScreen != null) nameEntryScreen.SetActive(false);
         if (hudContainer != null) hudContainer.SetActive(false);
+
+        // Mostrar MenuBG por defecto, ocultar ScoreBG
+        if (menuBG != null) menuBG.SetActive(true);
+        if (scoreBG != null) scoreBG.SetActive(false);
+
+        // Actualizar leaderboard text
+        RefreshLeaderboardDisplay();
 
         // Limpiar las tarjetas del tendedero
         if (orderCards != null)
@@ -283,35 +448,91 @@ public class UIManager : MonoBehaviour
     {
         if (startScreen != null) startScreen.SetActive(false);
         if (gameOverScreen != null) gameOverScreen.SetActive(false);
+        if (nameEntryScreen != null) nameEntryScreen.SetActive(false);
         if (hudContainer != null) hudContainer.SetActive(true);
 
         _lastCountdownSecond = -1;
         _previousScore = 0;
     }
 
-    /// <summary>Muestra la pantalla de game over con el score final.</summary>
+    /// <summary>
+    /// Muestra la pantalla de game over con el score final.
+    /// Se posiciona automáticamente frente a la cámara VR.
+    /// </summary>
     private void ShowGameOver(int finalScore)
     {
         if (startScreen != null) startScreen.SetActive(false);
-        if (gameOverScreen != null) gameOverScreen.SetActive(true);
+        if (nameEntryScreen != null) nameEntryScreen.SetActive(false);
         if (hudContainer != null) hudContainer.SetActive(false);
 
+        _pendingScore = finalScore;
+
+        // Mostrar score
         if (finalScoreText != null)
             finalScoreText.text = $"${finalScore}";
 
-        if (playerNameText != null && GameManager.Instance != null)
-            playerNameText.text = GameManager.Instance.PlayerName;
+        // Verificar si es top 10
+        bool isTopTen = false;
+        if (LeaderboardManager.Instance != null)
+            isTopTen = LeaderboardManager.Instance.IsTopTen(finalScore);
+
+        // Mostrar/ocultar elementos de top 10
+        if (topTenMessage != null)
+            topTenMessage.SetActive(isTopTen);
+        if (saveScoreButton != null)
+            saveScoreButton.gameObject.SetActive(isTopTen);
+
+        // Posicionar frente a la cámara VR y activar
+        if (gameOverScreen != null)
+        {
+            gameOverScreen.SetActive(true);
+            PositionInFrontOfCamera(gameOverScreen);
+        }
 
         // Audio de game over
         if (gameOverSound != null && _audioSource != null)
             _audioSource.PlayOneShot(gameOverSound);
     }
 
+    /// <summary>
+    /// Muestra el name entry para ingresar 3 caracteres con flechas.
+    /// Se posiciona frente a la cámara VR.
+    /// Muestra los caracteres anteriores como default.
+    /// </summary>
+    private void ShowNameEntry()
+    {
+        if (gameOverScreen != null) gameOverScreen.SetActive(false);
+
+        // Refrescar los caracteres (mantiene los anteriores)
+        RefreshNameDisplay();
+
+        if (nameEntryScreen != null)
+        {
+            nameEntryScreen.SetActive(true);
+            PositionInFrontOfCamera(nameEntryScreen);
+        }
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
-    //  BOTONES
+    //  LEADERBOARD DISPLAY
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// <summary>Callback del botón "Iniciar".</summary>
+    /// <summary>Actualiza el texto del leaderboard en ScoreBG.</summary>
+    private void RefreshLeaderboardDisplay()
+    {
+        if (leaderboardText == null) return;
+
+        if (LeaderboardManager.Instance != null)
+            leaderboardText.text = LeaderboardManager.Instance.GetFormattedLeaderboard();
+        else
+            leaderboardText.text = "No hay puntajes aún.\n¡Sé el primero!";
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  BOTONES — INICIO
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>Callback del botón "Iniciar" en el Start Screen.</summary>
     private void OnStartButtonPressed()
     {
         if (GameManager.Instance == null)
@@ -320,18 +541,82 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        string playerName = "AAA";
-        if (playerNameInput != null && !string.IsNullOrEmpty(playerNameInput.text))
-            playerName = playerNameInput.text;
+        // Usar el nombre del name entry (los caracteres guardados)
+        string playerName = new string(_currentNameChars);
 
         ShowGameHUD();
         GameManager.Instance.StartGame(playerName);
     }
 
-    /// <summary>Callback del botón "Reiniciar" en la pantalla de game over.</summary>
-    private void OnRestartButtonPressed()
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  BOTONES — GAME OVER
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>Callback del botón "Restart rápido" en Game Over.</summary>
+    private void OnQuickRestartPressed()
+    {
+        // Usar el nombre actual del name entry
+        string playerName = new string(_currentNameChars);
+
+        ShowGameHUD();
+        GameManager.Instance.StartGame(playerName);
+    }
+
+    /// <summary>Callback del botón "Guardar" en Game Over (solo si es top 10).</summary>
+    private void OnSaveScorePressed()
+    {
+        ShowNameEntry();
+    }
+
+    /// <summary>Callback del botón "Menú" en Game Over.</summary>
+    private void OnGameOverMenuPressed()
     {
         ShowStartScreen();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  BOTONES — NAME ENTRY
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>Callback del botón "OK" en Name Entry. Guarda el score y va al menú.</summary>
+    private void OnNameOkPressed()
+    {
+        string playerName = new string(_currentNameChars);
+
+        // Guardar en el leaderboard
+        if (LeaderboardManager.Instance != null)
+            LeaderboardManager.Instance.AddScore(playerName, _pendingScore);
+
+        // Actualizar el leaderboard display
+        RefreshLeaderboardDisplay();
+
+        // Ir al menú
+        ShowStartScreen();
+    }
+
+    /// <summary>Callback del botón "Menú" en Name Entry. Descarta y va al menú.</summary>
+    private void OnNameMenuPressed()
+    {
+        ShowStartScreen();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  BOTONES — MENÚ / SCORES TOGGLE
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>Muestra el leaderboard (ScoreBG) y oculta el menú (MenuBG).</summary>
+    private void OnViewScoresPressed()
+    {
+        RefreshLeaderboardDisplay();
+        if (menuBG != null) menuBG.SetActive(false);
+        if (scoreBG != null) scoreBG.SetActive(true);
+    }
+
+    /// <summary>Vuelve al menú (MenuBG) y oculta el leaderboard (ScoreBG).</summary>
+    private void OnBackToMenuPressed()
+    {
+        if (scoreBG != null) scoreBG.SetActive(false);
+        if (menuBG != null) menuBG.SetActive(true);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

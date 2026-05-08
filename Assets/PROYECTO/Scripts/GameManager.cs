@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
+
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -117,10 +117,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         // Estado inicial: mostrar mundo cerrado
-        // SetWorldState(gameRunning: false); //CAMBIO TEMPORAL PARA PRUEBAS
-
-        //TRUCO PARA LAS PRUEBAS
-        StartGame("PRB");
+        SetWorldState(gameRunning: false);
     }
 
     void Update()
@@ -184,7 +181,8 @@ public class GameManager : MonoBehaviour
         _isGameRunning = false;
         SetWorldState(gameRunning: false);
 
-        SaveScore();
+        // El guardado de score ahora es opcional vía LeaderboardManager
+        // y se controla desde UIManager (solo si el jugador decide guardar)
 
         OnGameOver?.Invoke(_score);
 
@@ -348,21 +346,4 @@ public class GameManager : MonoBehaviour
         return availableMeats[availableMeats.Length - 1];
     }
 
-    /// <summary>Guarda nombre y puntuación en un archivo .txt.</summary>
-    private void SaveScore()
-    {
-        string path      = Path.Combine(Application.persistentDataPath, "scores.txt");
-        string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        string line      = $"{timestamp} | {_playerName} | {_score} pts\n";
-
-        try
-        {
-            File.AppendAllText(path, line);
-            Debug.Log($"[GameManager] Score guardado en: {path}");
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"[GameManager] Error al guardar score: {e.Message}");
-        }
-    }
 }
