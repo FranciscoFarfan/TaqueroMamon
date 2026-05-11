@@ -6,8 +6,7 @@ using UnityEngine;
 ///
 /// Ya NO asigna carne automáticamente al tocar la tortilla.
 /// En cambio, expone TryServeMeat() que es llamado por TacoAssembler
-/// cuando el jugador presiona el botón del control CON la tortilla cara abajo
-/// sobre el montón.
+/// cuando el jugador presiona el botón del control sobre el montón.
 ///
 /// Configuración:
 ///   1. Colocar en el GameObject del montón de carne.
@@ -74,7 +73,6 @@ public class MeatPileSocket : MonoBehaviour
     /// Requisitos para que tenga éxito:
     ///   - La tortilla aún no tiene carne.
     ///   - La tortilla está cocida (Cooked).
-    ///   - La tortilla está orientada cara abajo (transform.up.y &lt; -faceDownThreshold).
     /// </summary>
     /// <param name="assembler">TacoAssembler de la tortilla que intenta recibir carne.</param>
     /// <returns>true si la carne fue asignada, false en caso contrario.</returns>
@@ -97,6 +95,7 @@ public class MeatPileSocket : MonoBehaviour
             return false;
         }
 
+        /*
         // Verificar orientación: cara abajo → transform.up apunta hacia -Y del mundo
         float upY = assembler.transform.up.y;
         if (upY > -faceDownThreshold)
@@ -104,6 +103,7 @@ public class MeatPileSocket : MonoBehaviour
             Debug.Log($"[MeatPileSocket] Tortilla no está cara abajo (up.y={upY:F2}, necesita < -{faceDownThreshold:F2}).");
             return false;
         }
+        */
 
         // ¡Servir carne!
         assembler.SetMeatType(meatType);
@@ -114,7 +114,7 @@ public class MeatPileSocket : MonoBehaviour
         if (serveParticles != null)
             serveParticles.Play();
 
-        Debug.Log($"[MeatPileSocket] Carne '{meatType}' servida a '{assembler.name}' (cara abajo + botón). ✓");
+        Debug.Log($"[MeatPileSocket] Carne '{meatType}' servida a '{assembler.name}' (botón presionado). ✓");
         return true;
     }
 

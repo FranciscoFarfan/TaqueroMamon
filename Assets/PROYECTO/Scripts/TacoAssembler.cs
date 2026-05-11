@@ -195,7 +195,7 @@ public class TacoAssembler : MonoBehaviour
         if (pile != null)
         {
             _currentMeatPile = pile;
-            Debug.Log($"[TacoAssembler] Tortilla sobre montón '{other.transform.root.name}'. Gira cara abajo y presiona el botón para servir.");
+            Debug.Log($"[TacoAssembler] Tortilla sobre montón '{other.transform.root.name}'. Presiona el botón para servir.");
         }
     }
 
