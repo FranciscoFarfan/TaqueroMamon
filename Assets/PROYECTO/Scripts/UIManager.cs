@@ -497,6 +497,8 @@ public class UIManager : MonoBehaviour
         if (startScreen    != null) startScreen.SetActive(false);
         if (gameOverScreen != null) gameOverScreen.SetActive(false);
         if (nameEntryScreen!= null) nameEntryScreen.SetActive(false);
+        if (menuBG         != null) menuBG.SetActive(false);          // fix ítem 4: MenuBG no se desactivaba al reiniciar
+        if (scoreBG        != null) scoreBG.SetActive(false);         // fix ítem 4: ScoreBG no se desactivaba al reiniciar
         if (hudContainer   != null) hudContainer.SetActive(true);
 
         // Desactivar rayos de manos (el jugador usa las manos para agarrar objetos)
@@ -519,9 +521,12 @@ public class UIManager : MonoBehaviour
         // Activar rayos para interactuar con botones de Game Over
         SetHandRays(true);
 
-        if (startScreen != null) startScreen.SetActive(false);
-        if (nameEntryScreen != null) nameEntryScreen.SetActive(false);
-        if (hudContainer != null) hudContainer.SetActive(false);
+        // Ocultar TODAS las pantallas antes de mostrar Game Over (fix ítem 3: menús superpuestos)
+        if (startScreen    != null) startScreen.SetActive(false);
+        if (nameEntryScreen!= null) nameEntryScreen.SetActive(false);
+        if (hudContainer   != null) hudContainer.SetActive(false);
+        if (menuBG         != null) menuBG.SetActive(false);          // fix ítem 3: menuBG quedaba visible
+        if (scoreBG        != null) scoreBG.SetActive(false);         // fix ítem 3: scoreBG quedaba visible
 
         _pendingScore = finalScore;
 

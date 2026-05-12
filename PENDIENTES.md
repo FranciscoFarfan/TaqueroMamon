@@ -219,8 +219,8 @@ Si los NPCs forman parte de `worldActive`, simplemente hacer que `SetWorldState(
 |---|-------|--------|------------|
 | 1 | Fijar cámara (no seguir movimiento físico) | ⏳ Pendiente | Media |
 | 2 | HUD tacos entregados en tiempo real | ✅ Implementado | Baja |
-| 3 | Menús sobrepuestos post-GameOver | ⏳ Pendiente | Baja |
-| 4 | MenuBG no se desactiva al reiniciar | ⏳ Pendiente | Baja |
+| 3 | Menús sobrepuestos post-GameOver | ✅ Implementado | Baja |
+| 4 | MenuBG no se desactiva al reiniciar | ✅ Implementado | Baja |
 | 5 | Reducir área del trigger de entrega | ⏳ Pendiente | Muy Baja |
 | 6 | Restricción: no aceptar plato incorrecto | ⏳ Pendiente | Media |
 | 7 | Desactivar NPC al terminar el juego | ⏳ Pendiente | Baja |
