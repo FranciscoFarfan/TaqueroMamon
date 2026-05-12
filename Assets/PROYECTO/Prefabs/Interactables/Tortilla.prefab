@@ -18,6 +18,8 @@ GameObject:
   - component: {fileID: 8754309191108509895}
   - component: {fileID: 7836300011295399234}
   - component: {fileID: 7407523725006490265}
+  - component: {fileID: -5687896032827575056}
+  - component: {fileID: -6153458073891076080}
   m_Layer: 0
   m_Name: Tortilla
   m_TagString: Tortilla
@@ -347,7 +349,6 @@ MonoBehaviour:
   tacoBistecPrefab: {fileID: 9182338564677262137, guid: f22c853171e7b1d41ae7cd310b8370ae, type: 3}
   tacoQuesoPrefab: {fileID: 6660559290384306951, guid: d008bfb45a984bb48a6fbe6b0106f051, type: 3}
   tacoGenericPrefab: {fileID: 9222130124112495094, guid: c161e2f6c8846bd47a89b814a68276e3, type: 3}
-  secondaryButtonAction: {fileID: -5982496924579745919, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   pastorTag: Pastor
   assembleSound: {fileID: 0}
   meatCatchSound: {fileID: 0}
@@ -368,3 +369,30 @@ MonoBehaviour:
   floorTag: Floor
   useVelocityFallback: 0
   velocityThreshold: -3
+--- !u!114 &-5687896032827575056
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2593139153186610331}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b77f26143762d84b8d42115bc286dc8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minY: -1
+--- !u!114 &-6153458073891076080
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2593139153186610331}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d0182c773692c7419245c15ae851ee8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  positionOffset: {x: 0, y: 0, z: 0}
+  rotationOffset: {x: -90.66, y: 0, z: 180.53}

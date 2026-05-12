@@ -164,6 +164,10 @@ public class GameManager : MonoBehaviour
 
         _isGameRunning = true;
 
+        // Confinar el cursor dentro de la ventana del juego
+        Cursor.lockState = CursorLockMode.Confined;
+        Cursor.visible = false;
+
         OnScoreChanged?.Invoke(_score);
         OnOrdersChanged?.Invoke(ActiveOrders);
 
@@ -180,6 +184,10 @@ public class GameManager : MonoBehaviour
 
         _isGameRunning = false;
         SetWorldState(gameRunning: false);
+
+        // Liberar el cursor para poder usar menús
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
 
         // El guardado de score ahora es opcional vía LeaderboardManager
         // y se controla desde UIManager (solo si el jugador decide guardar)

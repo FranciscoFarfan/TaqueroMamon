@@ -4,9 +4,9 @@ using UnityEngine;
 /// MeatPileSocket — Se coloca en cada montón de carne estática sobre la plancha
 /// (Bistec, Suadero, Chorizo, etc.).
 ///
-/// Ya NO asigna carne automáticamente al tocar la tortilla.
-/// En cambio, expone TryServeMeat() que es llamado por TacoAssembler
+/// Expone TryServeMeat() que es llamado por TacoAssembler
 /// cuando el jugador presiona el botón del control sobre el montón.
+/// Al servir carne exitosamente, TacoAssembler convierte la tortilla en taco automáticamente.
 ///
 /// Configuración:
 ///   1. Colocar en el GameObject del montón de carne.
@@ -24,12 +24,6 @@ public class MeatPileSocket : MonoBehaviour
     [Header("Configuración de carne")]
     [Tooltip("Tipo de carne que representa este montón. Debe coincidir con GameManager.availableMeats.")]
     [SerializeField] private string meatType = "Bistec";
-
-    [Header("Orientación")]
-    [Tooltip("Umbral para considerar la tortilla 'cara abajo'. " +
-             "La tortilla.transform.up.y debe ser MENOR que -faceDownThreshold. " +
-             "0.7 ≈ 45° pasado el plano horizontal hacia abajo.")]
-    [SerializeField] private float faceDownThreshold = 0.7f;
 
     [Header("Tags")]
     [Tooltip("Tag de la tortilla.")]
@@ -91,21 +85,11 @@ public class MeatPileSocket : MonoBehaviour
         TortillaManager tm = assembler.GetComponent<TortillaManager>();
         if (tm != null && !tm.IsCooked)
         {
-            Debug.Log($"[MeatPileSocket] Tortilla no está cocida (Estado: {tm.CurrentState}). Gira el comal primero.");
+            Debug.Log($"[MeatPileSocket] Tortilla no está cocida (Estado: {tm.CurrentState}). Cocínala primero.");
             return false;
         }
 
-        /*
-        // Verificar orientación: cara abajo → transform.up apunta hacia -Y del mundo
-        float upY = assembler.transform.up.y;
-        if (upY > -faceDownThreshold)
-        {
-            Debug.Log($"[MeatPileSocket] Tortilla no está cara abajo (up.y={upY:F2}, necesita < -{faceDownThreshold:F2}).");
-            return false;
-        }
-        */
-
-        // ¡Servir carne!
+        // ¡Servir carne! (SetMeatType convierte automáticamente en taco)
         assembler.SetMeatType(meatType);
 
         if (serveMeatSound != null && _audioSource != null)
@@ -127,7 +111,5 @@ public class MeatPileSocket : MonoBehaviour
         Collider col = GetComponent<Collider>();
         if (col != null && !col.isTrigger)
             col.isTrigger = true;
-
-        faceDownThreshold = Mathf.Clamp01(faceDownThreshold);
     }
 }

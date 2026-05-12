@@ -15,6 +15,9 @@ GameObject:
   - component: {fileID: 1283537977212341039}
   - component: {fileID: -8138938259005827729}
   - component: {fileID: 1018388752143947144}
+  - component: {fileID: -1996796875670542388}
+  - component: {fileID: -8843270497666983339}
+  - component: {fileID: 4028525461019783546}
   m_Layer: 0
   m_Name: TacoQueso
   m_TagString: taco
@@ -296,3 +299,52 @@ MonoBehaviour:
   floorTag: Floor
   useVelocityFallback: 0
   velocityThreshold: -3
+--- !u!114 &-1996796875670542388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6660559290384306951}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b77f26143762d84b8d42115bc286dc8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minY: -1
+--- !u!114 &-8843270497666983339
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6660559290384306951}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d0182c773692c7419245c15ae851ee8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  positionOffset: {x: 0, y: 0, z: 0}
+  rotationOffset: {x: -90.66, y: 0, z: 180.28}
+--- !u!64 &4028525461019783546
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6660559290384306951}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 2100205418181247973, guid: bdb382c74aad89f4abfc0a5c934a414e, type: 3}

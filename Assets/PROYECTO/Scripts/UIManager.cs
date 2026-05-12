@@ -457,8 +457,8 @@ public class UIManager : MonoBehaviour
         // Activar rayos de manos (para interactuar con menús)
         SetHandRays(true);
 
-        // Mostrar MenuBG por defecto, ocultar ScoreBG
-        if (menuBG != null) menuBG.SetActive(true);
+        // Ocultar MenuBG y ScoreBG al inicio (StartBG se encarga de mostrarlos vía onClick)
+        if (menuBG != null) menuBG.SetActive(false);
         if (scoreBG != null) scoreBG.SetActive(false);
 
         // Actualizar leaderboard text

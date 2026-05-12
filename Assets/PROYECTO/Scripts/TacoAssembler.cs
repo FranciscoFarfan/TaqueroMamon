@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
-using UnityEngine.InputSystem;
 
 /// <summary>
 /// TacoAssembler — Se coloca en el prefab de Tortilla.
@@ -10,13 +9,16 @@ using UnityEngine.InputSystem;
 ///   1. La tortilla se cocina (TortillaManager → Cooked)
 ///   2. Se le asigna carne de dos formas:
 ///      a) Pastor: el trozo de carne (tag "Pastor") colisiona con la tortilla en la mano
-///      b) Otras carnes: la tortilla toca un MeatPileSocket
-///   3. El jugador presiona el botón secundario del control → se convierte en taco
+///      b) Otras carnes: la tortilla toca un MeatPileSocket y el jugador presiona el trigger
+///   3. Al tener carne, se convierte automáticamente en taco (cambio de prefab)
+///
+/// Controles:
+///   - Grip: Agarrar la tortilla
+///   - Trigger (mientras sostienes la tortilla): Servir carne del montón
 ///
 /// Configuración:
 ///   1. Se coloca en el prefab Tortilla junto con TortillaManager.
 ///   2. Asignar los prefabs de taco en el Inspector.
-///   3. Asignar la referencia al botón secundario del control XR.
 /// </summary>
 [RequireComponent(typeof(XRGrabInteractable))]
 public class TacoAssembler : MonoBehaviour
@@ -37,14 +39,6 @@ public class TacoAssembler : MonoBehaviour
 
     [Tooltip("Prefab genérico de taco (fallback para carnes sin prefab específico).")]
     [SerializeField] private GameObject tacoGenericPrefab;
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  INSPECTOR — Input
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    [Header("Input XR")]
-    [Tooltip("Referencia al InputAction del botón secundario (A o X según la mano).")]
-    [SerializeField] private InputActionReference secondaryButtonAction;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  INSPECTOR — Tags
@@ -71,7 +65,6 @@ public class TacoAssembler : MonoBehaviour
 
     private string _meatType = null;
     private bool _hasMeat = false;
-    private bool _isInHand = false;
     private XRGrabInteractable _grabInteractable;
     private TortillaManager _tortillaManager;
     private AudioSource _audioSource;
@@ -107,27 +100,15 @@ public class TacoAssembler : MonoBehaviour
 
     void OnEnable()
     {
-        // Suscribirse a los eventos de grab
-        _grabInteractable.selectEntered.AddListener(OnGrabbed);
-        _grabInteractable.selectExited.AddListener(OnReleased);
-
-        // Suscribirse al botón secundario
-        if (secondaryButtonAction != null && secondaryButtonAction.action != null)
-        {
-            secondaryButtonAction.action.Enable();
-            secondaryButtonAction.action.performed += OnSecondaryButtonPressed;
-        }
+        // Suscribirse al evento "activated" del XRGrabInteractable.
+        // Este evento se dispara cuando el jugador presiona el TRIGGER
+        // mientras sostiene el objeto con el GRIP.
+        _grabInteractable.activated.AddListener(OnTriggerActivated);
     }
 
     void OnDisable()
     {
-        _grabInteractable.selectEntered.RemoveListener(OnGrabbed);
-        _grabInteractable.selectExited.RemoveListener(OnReleased);
-
-        if (secondaryButtonAction != null && secondaryButtonAction.action != null)
-        {
-            secondaryButtonAction.action.performed -= OnSecondaryButtonPressed;
-        }
+        _grabInteractable.activated.RemoveListener(OnTriggerActivated);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -137,6 +118,7 @@ public class TacoAssembler : MonoBehaviour
     /// <summary>
     /// Asigna el tipo de carne. Llamado por MeatPileSocket o al recibir pastor.
     /// Solo funciona si la tortilla está cocida.
+    /// Al recibir carne, la tortilla se convierte automáticamente en taco.
     /// </summary>
     public void SetMeatType(string type)
     {
@@ -156,7 +138,10 @@ public class TacoAssembler : MonoBehaviour
         _meatType = type;
         _hasMeat = true;
 
-        Debug.Log($"[TacoAssembler] Carne asignada: '{_meatType}'. Presiona botón secundario para armar taco.");
+        Debug.Log($"[TacoAssembler] Carne asignada: '{_meatType}'. Convirtiendo en taco...");
+
+        // Convertir automáticamente en taco al recibir carne
+        ConvertToTaco();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -180,22 +165,23 @@ public class TacoAssembler : MonoBehaviour
                 return;
             }
 
-            SetMeatType("Pastor");
-
             if (meatCatchSound != null && _audioSource != null)
                 _audioSource.PlayOneShot(meatCatchSound);
 
             Destroy(other.gameObject);
             Debug.Log("[TacoAssembler] ¡Trozo de pastor atrapado por la tortilla!");
+
+            // SetMeatType llamará a ConvertToTaco automáticamente
+            SetMeatType("Pastor");
             return;
         }
 
-        // ── Montón de carne: registrar para servirla con botón ──────────────
+        // ── Montón de carne: registrar para servirla con trigger ──────────────
         MeatPileSocket pile = other.GetComponentInParent<MeatPileSocket>();
         if (pile != null)
         {
             _currentMeatPile = pile;
-            Debug.Log($"[TacoAssembler] Tortilla sobre montón '{other.transform.root.name}'. Presiona el botón para servir.");
+            Debug.Log($"[TacoAssembler] Tortilla sobre montón '{other.transform.root.name}'. Presiona el trigger para servir.");
         }
     }
 
@@ -211,48 +197,35 @@ public class TacoAssembler : MonoBehaviour
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    //  EVENTOS XR
+    //  TRIGGER — Servir carne desde montón
     // ═══════════════════════════════════════════════════════════════════════════
 
-    private void OnGrabbed(SelectEnterEventArgs args)
+    /// <summary>
+    /// Se llama cuando el jugador presiona el TRIGGER mientras sostiene la tortilla.
+    /// Evento nativo de XRGrabInteractable.activated (Grip = sostener, Trigger = activar).
+    /// </summary>
+    private void OnTriggerActivated(ActivateEventArgs args)
     {
-        _isInHand = true;
-    }
+        if (GameManager.Instance != null && !GameManager.Instance.IsGameRunning) return;
 
-    private void OnReleased(SelectExitEventArgs args)
-    {
-        _isInHand = false;
+        // Si ya tiene carne, no hacer nada (ya se convirtió o se está convirtiendo)
+        if (_hasMeat) return;
+
+        // Intentar servir desde el montón bajo la tortilla
+        if (_currentMeatPile != null)
+        {
+            // TryServeMeat verifica que esté cocida y llama SetMeatType → ConvertToTaco
+            _currentMeatPile.TryServeMeat(this);
+        }
+        else
+        {
+            Debug.Log("[TacoAssembler] Trigger presionado, pero no hay montón de carne bajo la tortilla.");
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  CONVERSIÓN TORTILLA → TACO
     // ═══════════════════════════════════════════════════════════════════════════
-
-    private void OnSecondaryButtonPressed(InputAction.CallbackContext context)
-    {
-        // Siempre requerir que la tortilla esté en la mano
-        if (!_isInHand) return;
-
-        if (GameManager.Instance != null && !GameManager.Instance.IsGameRunning) return;
-
-        // ── CASO 1: Sin carne → intentar servir desde el montón bajo la tortilla
-        if (!_hasMeat)
-        {
-            if (_currentMeatPile != null)
-            {
-                // TryServeMeat verifica: cocida + cara abajo
-                _currentMeatPile.TryServeMeat(this);
-            }
-            else
-            {
-                Debug.Log("[TacoAssembler] Botón presionado, pero no hay montón de carne bajo la tortilla.");
-            }
-            return;
-        }
-
-        // ── CASO 2: Ya tiene carne → convertir en taco
-        ConvertToTaco();
-    }
 
     private void ConvertToTaco()
     {
@@ -265,94 +238,57 @@ public class TacoAssembler : MonoBehaviour
             return;
         }
 
-        // Obtener la referencia al interactor que nos tiene agarrados
-        IXRSelectInteractor currentInteractor = null;
-        if (_grabInteractable.isSelected)
-        {
-            currentInteractor = _grabInteractable.firstInteractorSelecting;
-        }
-
         // Guardar posición y rotación
         Vector3 pos = transform.position;
         Quaternion rot = transform.rotation;
 
-        // Soltar la tortilla del interactor antes de destruirla
-        if (currentInteractor != null)
-        {
-            XRInteractionManager interactionManager = _grabInteractable.interactionManager;
+        // Obtener la referencia al interactor que nos tiene agarrados
+        IXRSelectInteractor currentInteractor = null;
+        XRInteractionManager interactionManager = null;
 
-            // Forzar deseleccionar la tortilla
+        if (_grabInteractable.isSelected)
+        {
+            currentInteractor = _grabInteractable.firstInteractorSelecting;
+            interactionManager = _grabInteractable.interactionManager;
+        }
+
+        // Forzar deseleccionar la tortilla si está siendo sostenida
+        if (currentInteractor != null && interactionManager != null)
+        {
             interactionManager.SelectExit(currentInteractor, _grabInteractable);
+        }
 
-            // Instanciar el taco en la misma posición
-            GameObject tacoObj = Instantiate(tacoPrefab, pos, rot);
+        // Instanciar el taco en la misma posición
+        GameObject tacoObj = Instantiate(tacoPrefab, pos, rot);
 
-            // Asignar el tipo de carne al TacoData
-            TacoData tacoData = tacoObj.GetComponent<TacoData>();
-            if (tacoData == null)
-                tacoData = tacoObj.AddComponent<TacoData>();
-            tacoData.meatType = _meatType;
+        // Asignar el tipo de carne al TacoData
+        TacoData tacoData = tacoObj.GetComponent<TacoData>();
+        if (tacoData == null)
+            tacoData = tacoObj.AddComponent<TacoData>();
+        tacoData.meatType = _meatType;
 
-            // Intentar que el interactor agarre el nuevo taco
+        // Intentar que el interactor agarre el nuevo taco.
+        // La coroutine se ejecuta en el TACO nuevo (no en la tortilla que se destruye).
+        if (currentInteractor != null && interactionManager != null)
+        {
             XRGrabInteractable tacoGrab = tacoObj.GetComponent<XRGrabInteractable>();
-            if (tacoGrab != null && currentInteractor != null)
+            if (tacoGrab != null)
             {
-                // Pequeño delay para que XRI procese la deselección
-                StartCoroutine(GrabTacoDelayed(interactionManager, currentInteractor, tacoGrab));
+                TacoGrabHelper helper = tacoObj.AddComponent<TacoGrabHelper>();
+                helper.StartGrabTransfer(interactionManager, currentInteractor, tacoGrab);
             }
-
-            // Feedback de audio (en el taco nuevo, porque la tortilla se destruye)
-            if (assembleSound != null)
-            {
-                AudioSource.PlayClipAtPoint(assembleSound, pos);
-            }
-
-            Debug.Log($"[TacoAssembler] ¡Taco de {_meatType} armado!");
-
-            // Destruir la tortilla
-            Destroy(gameObject);
         }
-        else
+
+        // Feedback de audio (en la posición, porque la tortilla se destruye)
+        if (assembleSound != null)
         {
-            // Si no hay interactor (raro), solo instanciar y destruir
-            GameObject tacoObj = Instantiate(tacoPrefab, pos, rot);
-
-            TacoData tacoData = tacoObj.GetComponent<TacoData>();
-            if (tacoData == null)
-                tacoData = tacoObj.AddComponent<TacoData>();
-            tacoData.meatType = _meatType;
-
-            if (assembleSound != null)
-                AudioSource.PlayClipAtPoint(assembleSound, pos);
-
-            Debug.Log($"[TacoAssembler] Taco de {_meatType} armado (sin interactor).");
-            Destroy(gameObject);
+            AudioSource.PlayClipAtPoint(assembleSound, pos);
         }
-    }
 
-    /// <summary>
-    /// Espera un frame y luego intenta que el interactor agarre el taco nuevo.
-    /// </summary>
-    private System.Collections.IEnumerator GrabTacoDelayed(
-        XRInteractionManager manager,
-        IXRSelectInteractor interactor,
-        XRGrabInteractable tacoGrab)
-    {
-        // Esperar un frame para que XRI procese
-        yield return null;
+        Debug.Log($"[TacoAssembler] ¡Taco de {_meatType} armado!");
 
-        if (manager != null && interactor != null && tacoGrab != null)
-        {
-            try
-            {
-                manager.SelectEnter(interactor, tacoGrab);
-                Debug.Log("[TacoAssembler] Taco transferido a la mano del jugador.");
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogWarning($"[TacoAssembler] No se pudo transferir el taco: {e.Message}");
-            }
-        }
+        // Destruir la tortilla
+        Destroy(gameObject);
     }
 
     /// <summary>
