@@ -11,13 +11,17 @@ using TMPro;
 ///   - Tendedero: Tarjetas de pedidos
 ///   - Pantallas: Inicio, Game Over, Name Entry, Leaderboard
 ///
-/// El Game Over se posiciona frente a la cámara VR automáticamente.
+/// Flujo: MenuBG → (teletransporta a zona de juego) → JUEGA
+///        → GameOver (teletransporta a zona de game over) → NAMEENTRY → Score
+///
+/// El jugador es teletransportado a puntos de referencia en la escena
+/// al iniciar la partida y al terminarla.
 /// El Name Entry usa 3 caracteres con flechas ↑↓ tipo arcade.
 ///
 /// Configuración:
 ///   1. Colocar en el Canvas principal de la escena.
 ///   2. Asignar todas las referencias de UI en el Inspector.
-///   3. El Game Over y Name Entry deben ser Canvas WorldSpace separados.
+///   3. Asignar el XR Origin y los puntos de teletransporte.
 /// </summary>
 public class UIManager : MonoBehaviour
 {
@@ -28,15 +32,28 @@ public class UIManager : MonoBehaviour
     public static UIManager Instance { get; private set; }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    //  INSPECTOR — VR CAMERA
+    //  INSPECTOR — TELETRANSPORTE
     // ═══════════════════════════════════════════════════════════════════════════
 
-    [Header("VR Camera")]
-    [Tooltip("Referencia a la Main Camera del XR Rig (para posicionar Game Over frente al jugador).")]
-    [SerializeField] private Camera vrCamera;
+    [Header("Teletransporte")]
+    [Tooltip("Transform del XR Origin (el objeto raíz del jugador que se teletransporta).")]
+    [SerializeField] private Transform xrOrigin;
 
-    [Tooltip("Distancia frente a la cámara donde aparece el Game Over.")]
-    [SerializeField] private float gameOverDistance = 1.5f;
+    [Tooltip("Punto de destino al iniciar la partida (zona de juego).")]
+    [SerializeField] private Transform teleportStartPoint;
+
+    [Tooltip("Punto de destino al terminar la partida (zona de Game Over).")]
+    [SerializeField] private Transform teleportGameOverPoint;
+
+    [Tooltip("Punto de destino para el menú principal (zona del MenuBG). Si es null, no se teletransporta al menú.")]
+    [SerializeField] private Transform teleportMenuPoint;
+
+    [Header("Rayos de manos")]
+    [Tooltip("GameObject del rayo de la mano izquierda (se desactiva al jugar, se activa en menús).")]
+    [SerializeField] private GameObject leftHandRay;
+
+    [Tooltip("GameObject del rayo de la mano derecha (se desactiva al jugar, se activa en menús).")]
+    [SerializeField] private GameObject rightHandRay;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  INSPECTOR — HUD
@@ -387,31 +404,42 @@ public class UIManager : MonoBehaviour
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    //  POSICIONAMIENTO FRENTE A CÁMARA VR
+    //  TELETRANSPORTE DEL JUGADOR
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// <summary>
-    /// Posiciona un panel/canvas frente a la cámara VR del jugador,
-    /// manteniendo la orientación horizontal (sin inclinar hacia arriba/abajo).
+    /// Teletransporta al jugador (XR Origin) a la posición y rotación
+    /// del Transform de destino indicado.
     /// </summary>
-    private void PositionInFrontOfCamera(GameObject panel)
+    private void TeleportPlayer(Transform destination)
     {
-        if (vrCamera == null || panel == null) return;
+        if (xrOrigin == null || destination == null)
+        {
+            if (xrOrigin == null)
+                Debug.LogWarning("[UIManager] xrOrigin no asignado, no se puede teletransportar.");
+            if (destination == null)
+                Debug.LogWarning("[UIManager] Destino de teletransporte no asignado.");
+            return;
+        }
 
-        Transform cam = vrCamera.transform;
-        Vector3 forward = cam.forward;
-        forward.y = 0f; // Mantener horizontal
-        if (forward.sqrMagnitude < 0.001f)
-            forward = Vector3.forward; // Fallback si mira directo arriba/abajo
+        // Desactivar el CharacterController si existe (evita que bloquee el teletransporte)
+        CharacterController cc = xrOrigin.GetComponent<CharacterController>();
+        if (cc != null) cc.enabled = false;
 
-        forward.Normalize();
+        xrOrigin.position = destination.position;
+        xrOrigin.rotation = destination.rotation;
 
-        // Posicionar a la altura de los ojos del jugador
-        Vector3 targetPos = cam.position + forward * gameOverDistance;
-        panel.transform.position = targetPos;
+        // Reactivar el CharacterController
+        if (cc != null) cc.enabled = true;
 
-        // Rotar para mirar hacia la cámara
-        panel.transform.rotation = Quaternion.LookRotation(forward);
+        Debug.Log($"[UIManager] Jugador teletransportado a {destination.name}");
+    }
+
+    /// <summary>Activa o desactiva los rayos de ambas manos.</summary>
+    private void SetHandRays(bool active)
+    {
+        if (leftHandRay != null) leftHandRay.SetActive(active);
+        if (rightHandRay != null) rightHandRay.SetActive(active);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -425,6 +453,9 @@ public class UIManager : MonoBehaviour
         if (gameOverScreen != null) gameOverScreen.SetActive(false);
         if (nameEntryScreen != null) nameEntryScreen.SetActive(false);
         if (hudContainer != null) hudContainer.SetActive(false);
+
+        // Activar rayos de manos (para interactuar con menús)
+        SetHandRays(true);
 
         // Mostrar MenuBG por defecto, ocultar ScoreBG
         if (menuBG != null) menuBG.SetActive(true);
@@ -451,21 +482,30 @@ public class UIManager : MonoBehaviour
         if (nameEntryScreen != null) nameEntryScreen.SetActive(false);
         if (hudContainer != null) hudContainer.SetActive(true);
 
+        // Desactivar rayos de manos (el jugador usa las manos para agarrar objetos)
+        SetHandRays(false);
+
         _lastCountdownSecond = -1;
         _previousScore = 0;
     }
 
     /// <summary>
     /// Muestra la pantalla de game over con el score final.
-    /// Se posiciona automáticamente frente a la cámara VR.
+    /// Teletransporta al jugador a la zona de Game Over.
     /// </summary>
     private void ShowGameOver(int finalScore)
     {
+        // Activar rayos para interactuar con botones de Game Over
+        SetHandRays(true);
+
         if (startScreen != null) startScreen.SetActive(false);
         if (nameEntryScreen != null) nameEntryScreen.SetActive(false);
         if (hudContainer != null) hudContainer.SetActive(false);
 
         _pendingScore = finalScore;
+
+        // Teletransportar al jugador a la zona de Game Over
+        TeleportPlayer(teleportGameOverPoint);
 
         // Mostrar score
         if (finalScoreText != null)
@@ -482,12 +522,9 @@ public class UIManager : MonoBehaviour
         if (saveScoreButton != null)
             saveScoreButton.gameObject.SetActive(isTopTen);
 
-        // Posicionar frente a la cámara VR y activar
+        // Activar pantalla de Game Over (ya está en su posición fija en la escena)
         if (gameOverScreen != null)
-        {
             gameOverScreen.SetActive(true);
-            PositionInFrontOfCamera(gameOverScreen);
-        }
 
         // Audio de game over
         if (gameOverSound != null && _audioSource != null)
@@ -496,7 +533,7 @@ public class UIManager : MonoBehaviour
 
     /// <summary>
     /// Muestra el name entry para ingresar 3 caracteres con flechas.
-    /// Se posiciona frente a la cámara VR.
+    /// El jugador ya está en la zona de Game Over (misma ubicación).
     /// Muestra los caracteres anteriores como default.
     /// </summary>
     private void ShowNameEntry()
@@ -506,11 +543,9 @@ public class UIManager : MonoBehaviour
         // Refrescar los caracteres (mantiene los anteriores)
         RefreshNameDisplay();
 
+        // Activar pantalla de Name Entry (ya está en su posición fija en la escena)
         if (nameEntryScreen != null)
-        {
             nameEntryScreen.SetActive(true);
-            PositionInFrontOfCamera(nameEntryScreen);
-        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -544,6 +579,9 @@ public class UIManager : MonoBehaviour
         // Usar el nombre del name entry (los caracteres guardados)
         string playerName = new string(_currentNameChars);
 
+        // Teletransportar al jugador a la zona de juego
+        TeleportPlayer(teleportStartPoint);
+
         ShowGameHUD();
         GameManager.Instance.StartGame(playerName);
     }
@@ -558,6 +596,9 @@ public class UIManager : MonoBehaviour
         // Usar el nombre actual del name entry
         string playerName = new string(_currentNameChars);
 
+        // Teletransportar al jugador a la zona de juego
+        TeleportPlayer(teleportStartPoint);
+
         ShowGameHUD();
         GameManager.Instance.StartGame(playerName);
     }
@@ -571,6 +612,8 @@ public class UIManager : MonoBehaviour
     /// <summary>Callback del botón "Menú" en Game Over.</summary>
     private void OnGameOverMenuPressed()
     {
+        // Teletransportar al jugador al menú (si hay punto asignado)
+        TeleportPlayer(teleportMenuPoint);
         ShowStartScreen();
     }
 
@@ -578,7 +621,7 @@ public class UIManager : MonoBehaviour
     //  BOTONES — NAME ENTRY
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// <summary>Callback del botón "OK" en Name Entry. Guarda el score y va al menú.</summary>
+    /// <summary>Callback del botón "OK" en Name Entry. Guarda el score y va a Scores.</summary>
     private void OnNameOkPressed()
     {
         string playerName = new string(_currentNameChars);
@@ -590,13 +633,19 @@ public class UIManager : MonoBehaviour
         // Actualizar el leaderboard display
         RefreshLeaderboardDisplay();
 
-        // Ir al menú
+        // Ir al menú mostrando el ScoreBG (flujo: NameEntry → Score)
+        TeleportPlayer(teleportMenuPoint);
         ShowStartScreen();
+
+        // Mostrar ScoreBG directamente en vez de MenuBG
+        if (menuBG != null) menuBG.SetActive(false);
+        if (scoreBG != null) scoreBG.SetActive(true);
     }
 
     /// <summary>Callback del botón "Menú" en Name Entry. Descarta y va al menú.</summary>
     private void OnNameMenuPressed()
     {
+        TeleportPlayer(teleportMenuPoint);
         ShowStartScreen();
     }
 
