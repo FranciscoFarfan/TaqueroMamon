@@ -73,6 +73,10 @@ public class UIManager : MonoBehaviour
     [Tooltip("Texto del puntaje/dinero del jugador.")]
     [SerializeField] private TMP_Text scoreText;
 
+    [Header("HUD — Tacos entregados")]
+    [Tooltip("Texto que muestra el total de tacos entregados en la partida actual.")]
+    [SerializeField] private TMP_Text tacosDeliveredText;
+
     [Header("HUD — Contenedor")]
     [Tooltip("GameObject padre del HUD (para mostrar/ocultar).")]
     [SerializeField] private GameObject hudContainer;
@@ -255,6 +259,10 @@ public class UIManager : MonoBehaviour
 
     void Update()
     {
+        // Reintentar suscripción si GameManager arrancó después que UIManager
+        if (!_subscribed)
+            SubscribeToEvents();
+
         if (GameManager.Instance == null || !GameManager.Instance.IsGameRunning) return;
 
         UpdateTimer();
@@ -321,9 +329,10 @@ public class UIManager : MonoBehaviour
         if (_subscribed) return;
         if (GameManager.Instance == null) return;
 
-        GameManager.Instance.OnScoreChanged += UpdateScore;
-        GameManager.Instance.OnOrdersChanged += UpdateOrders;
-        GameManager.Instance.OnGameOver += ShowGameOver;
+        GameManager.Instance.OnScoreChanged          += UpdateScore;
+        GameManager.Instance.OnOrdersChanged         += UpdateOrders;
+        GameManager.Instance.OnGameOver              += ShowGameOver;
+        GameManager.Instance.OnTacosDeliveredChanged += UpdateTacosDelivered;
 
         _subscribed = true;
     }
@@ -333,9 +342,10 @@ public class UIManager : MonoBehaviour
         if (!_subscribed) return;
         if (GameManager.Instance == null) return;
 
-        GameManager.Instance.OnScoreChanged -= UpdateScore;
-        GameManager.Instance.OnOrdersChanged -= UpdateOrders;
-        GameManager.Instance.OnGameOver -= ShowGameOver;
+        GameManager.Instance.OnScoreChanged          -= UpdateScore;
+        GameManager.Instance.OnOrdersChanged         -= UpdateOrders;
+        GameManager.Instance.OnGameOver              -= ShowGameOver;
+        GameManager.Instance.OnTacosDeliveredChanged -= UpdateTacosDelivered;
 
         _subscribed = false;
     }
@@ -381,6 +391,13 @@ public class UIManager : MonoBehaviour
             _audioSource.PlayOneShot(scoreUpSound);
 
         _previousScore = score;
+    }
+
+    /// <summary>Actualiza el texto de tacos entregados cuando cambia.</summary>
+    private void UpdateTacosDelivered(int total)
+    {
+        if (tacosDeliveredText != null)
+            tacosDeliveredText.text = $"{total}";
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -477,16 +494,20 @@ public class UIManager : MonoBehaviour
     /// <summary>Muestra el HUD durante la partida.</summary>
     private void ShowGameHUD()
     {
-        if (startScreen != null) startScreen.SetActive(false);
+        if (startScreen    != null) startScreen.SetActive(false);
         if (gameOverScreen != null) gameOverScreen.SetActive(false);
-        if (nameEntryScreen != null) nameEntryScreen.SetActive(false);
-        if (hudContainer != null) hudContainer.SetActive(true);
+        if (nameEntryScreen!= null) nameEntryScreen.SetActive(false);
+        if (hudContainer   != null) hudContainer.SetActive(true);
 
         // Desactivar rayos de manos (el jugador usa las manos para agarrar objetos)
         SetHandRays(false);
 
         _lastCountdownSecond = -1;
         _previousScore = 0;
+
+        // Resetear display de tacos entregados
+        if (tacosDeliveredText != null)
+            tacosDeliveredText.text = "0";
     }
 
     /// <summary>
