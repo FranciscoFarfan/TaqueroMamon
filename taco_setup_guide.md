@@ -325,15 +325,15 @@ Verificar que el **GameManager** tiene:
 - [X] GameManager singleton en la escena
 - [X] PersonSpawner configurado con QueueManager
 - [X] QueueManager con 3 spots de fila
-- [ ] UIManager con todas las referencias de UI
+- [x] UIManager con todas las referencias de UI
 
 ### UI ✅
 
 - [X] Canvas HUD con Timer y Score
 - [X] Canvas Tendedero con 3 OrderCardUI
 - [X] Canvas Start Screen con input y botón
-- [ ] Canvas Game Over con score final y botón restart
-- [ ] UIManager tiene TODAS las referencias
+- [x] Canvas Game Over con score final y botón restart
+- [X] UIManager tiene TODAS las referencias
 
 ---
 
