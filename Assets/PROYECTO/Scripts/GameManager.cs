@@ -75,6 +75,12 @@ public class GameManager : MonoBehaviour
     private int    _score          = 0;
     private string _playerName     = "AAA";
     private int    _nextOrderId    = 0;
+    
+    private int _tacosDelivered = 0; // Nuevo contador
+    
+    public int TacosDelivered => _tacosDelivered; // Propiedad pública
+    // Evento para notificar cambios en la cantidad de tacos
+    public event Action<int> OnTacosDeliveredChanged;
 
     private readonly List<TacoOrder> _activeOrders = new List<TacoOrder>();
 
@@ -153,6 +159,8 @@ public class GameManager : MonoBehaviour
         _score         = 0;
         _timeRemaining = gameDuration;
         _nextOrderId   = 0;
+        _tacosDelivered = 0; // Resetear al iniciar
+        OnTacosDeliveredChanged?.Invoke(_tacosDelivered);
         _activeOrders.Clear();
 
         // Cambiar mundo
@@ -232,24 +240,19 @@ public class GameManager : MonoBehaviour
     public void OrderCompleted(int orderId, int reward)
     {
         TacoOrder order = _activeOrders.Find(o => o.OrderId == orderId);
-        if (order == null)
-        {
-            Debug.LogWarning($"[GameManager] OrderCompleted: no existe pedido con ID {orderId}");
-            return;
-        }
+        if (order == null) return;
 
         order.Complete();
         _activeOrders.Remove(order);
 
+        // INCREMENTAR CONTADOR DE TACOS
+        _tacosDelivered += order.TacoCount; 
+        OnTacosDeliveredChanged?.Invoke(_tacosDelivered); // Notificar a la UI
+
         AddPoints(reward);
 
-        // Reemplazar con un pedido nuevo (sólo si el juego sigue corriendo)
-        if (_isGameRunning)
-            GenerateNewOrder();
-
+        if (_isGameRunning) GenerateNewOrder();
         OnOrdersChanged?.Invoke(ActiveOrders);
-
-        Debug.Log($"[GameManager] Pedido #{orderId} completado. Recompensa: {reward}");
     }
 
     /// <summary>

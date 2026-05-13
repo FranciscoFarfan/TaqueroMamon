@@ -327,8 +327,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cookTime: 10
   burnTime: 45
-  rawMaterial: {fileID: -1161241544073198145, guid: bdb382c74aad89f4abfc0a5c934a414e, type: 3}
-  cookedMaterial: {fileID: 2100000, guid: 0e135af92a215c347b2feeca3f3f69cc, type: 2}
+  rawMaterial: {fileID: 2100000, guid: 0e135af92a215c347b2feeca3f3f69cc, type: 2}
+  cookedMaterial: {fileID: 2100000, guid: ddc8867cf0adb91439f5b60437440a59, type: 2}
   burntMaterial: {fileID: 2100000, guid: 3aae4058ba6afa945ac240642a49e272, type: 2}
   burnPenalty: 10
   cookingSound: {fileID: 0}

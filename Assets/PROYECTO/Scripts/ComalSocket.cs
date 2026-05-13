@@ -1,14 +1,9 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 /// <summary>
-/// ComalSocket — Se coloca en cada slot del comal (6 en total).
-/// Detecta cuando una tortilla entra o sale del trigger y le avisa a TortillaManager.
-///
-/// Configuración:
-///   1. Crear un GameObject vacío por cada slot del comal.
-///   2. Agregar un Collider (Box o Sphere) marcado como Trigger.
-///   3. Agregar este script.
-///   4. Las tortillas deben tener Rigidbody + Collider + tag "Tortilla".
+/// ComalSocket — Se coloca en el comal (como un solo trigger gigante).
+/// Detecta múltiples tortillas que entran o salen del trigger y les avisa a sus TortillaManager.
 /// </summary>
 [RequireComponent(typeof(Collider))]
 public class ComalSocket : MonoBehaviour
@@ -21,25 +16,19 @@ public class ComalSocket : MonoBehaviour
     [Tooltip("Tag que deben tener las tortillas.")]
     [SerializeField] private string tortillaTag = "Tortilla";
 
-    [Header("Visual (Opcional)")]
-    [Tooltip("Indicador visual de que el slot está ocupado (ej. un sprite de círculo).")]
-    [SerializeField] private GameObject occupiedIndicator;
-
     // ═══════════════════════════════════════════════════════════════════════════
     //  ESTADO PRIVADO
     // ═══════════════════════════════════════════════════════════════════════════
 
-    private TortillaManager _currentTortilla = null;
+    // Lista para rastrear TODAS las tortillas que están actualmente tocando el comal
+    private List<TortillaManager> _tortillasEnComal = new List<TortillaManager>();
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  PROPIEDADES PÚBLICAS
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// <summary>¿Hay una tortilla en este slot?</summary>
-    public bool IsOccupied => _currentTortilla != null;
-
-    /// <summary>Referencia a la tortilla actual (null si vacío).</summary>
-    public TortillaManager CurrentTortilla => _currentTortilla;
+    /// <summary>Cuántas tortillas hay cocinándose ahora mismo.</summary>
+    public int TortillasCount => _tortillasEnComal.Count;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  TRIGGERS
@@ -47,42 +36,40 @@ public class ComalSocket : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        // Ignorar si ya hay una tortilla en este slot
-        if (_currentTortilla != null) return;
-
         // Solo aceptar objetos con tag de tortilla
         if (!other.CompareTag(tortillaTag)) return;
 
         TortillaManager tortilla = other.GetComponentInParent<TortillaManager>();
         if (tortilla == null) return;
 
-        // Si la tortilla ya está quemada, no aceptarla
+        // Si por alguna razón la tortilla ya está en la lista, la ignoramos para no duplicar
+        if (_tortillasEnComal.Contains(tortilla)) return;
+
+        // Si la tortilla ya está quemada, no hacemos nada
         if (tortilla.CurrentState == TortillaManager.TortillaState.Burnt) return;
 
-        _currentTortilla = tortilla;
-        _currentTortilla.StartCooking();
+        // Agregarla a la lista y empezar a cocinarla
+        _tortillasEnComal.Add(tortilla);
+        tortilla.StartCooking();
 
-        if (occupiedIndicator != null)
-            occupiedIndicator.SetActive(true);
-
-        Debug.Log($"[ComalSocket] Tortilla '{other.gameObject.name}' entró al slot '{gameObject.name}'.");
+        Debug.Log($"[ComalSocket] Tortilla '{other.gameObject.name}' entró al comal. Total cocinándose: {_tortillasEnComal.Count}");
     }
 
     void OnTriggerExit(Collider other)
     {
-        if (_currentTortilla == null) return;
+        // Ignorar si no es una tortilla
+        if (!other.CompareTag(tortillaTag)) return;
 
-        // Verificar que el objeto que sale es la tortilla que tenemos registrada
         TortillaManager tortilla = other.GetComponentInParent<TortillaManager>();
-        if (tortilla == null || tortilla != _currentTortilla) return;
+        if (tortilla == null) return;
 
-        _currentTortilla.StopCooking();
-        _currentTortilla = null;
-
-        if (occupiedIndicator != null)
-            occupiedIndicator.SetActive(false);
-
-        Debug.Log($"[ComalSocket] Tortilla '{other.gameObject.name}' salió del slot '{gameObject.name}'.");
+        // Verificamos si la teníamos registrada en nuestra lista
+        if (_tortillasEnComal.Contains(tortilla))
+        {
+            tortilla.StopCooking();
+            _tortillasEnComal.Remove(tortilla);
+            Debug.Log($"[ComalSocket] Tortilla '{other.gameObject.name}' salió del comal. Total cocinándose: {_tortillasEnComal.Count}");
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
