@@ -6,6 +6,7 @@ using UnityEngine;
 /// Modificado para:
 ///   - Solo spawnear si GameManager.IsGameRunning
 ///   - Asignar un pedido (TacoOrder) del GameManager a cada NPC
+///   - Destruir todos los NPCs activos al terminar la partida (OnGameOver)
 /// </summary>
 public class PersonSpawner : MonoBehaviour
 {
@@ -18,9 +19,17 @@ public class PersonSpawner : MonoBehaviour
     public float checkInterval = 2f;
 
     private float timer;
+    private bool _subscribedToGameOver = false;
 
     void Update()
     {
+        // Suscribirse a OnGameOver cuando GameManager esté disponible
+        if (!_subscribedToGameOver && GameManager.Instance != null)
+        {
+            GameManager.Instance.OnGameOver += OnGameOver;
+            _subscribedToGameOver = true;
+        }
+
         // Solo spawnear si el juego está en curso
         if (GameManager.Instance == null || !GameManager.Instance.IsGameRunning) return;
 
@@ -30,6 +39,35 @@ public class PersonSpawner : MonoBehaviour
             timer = 0f;
             TrySpawnPerson();
         }
+    }
+
+    void OnDisable()
+    {
+        if (_subscribedToGameOver && GameManager.Instance != null)
+        {
+            GameManager.Instance.OnGameOver -= OnGameOver;
+            _subscribedToGameOver = false;
+        }
+    }
+
+    /// <summary>
+    /// Al terminar la partida, destruye todos los NPCs activos y limpia la cola.
+    /// </summary>
+    private void OnGameOver(int finalScore)
+    {
+        if (queueManager == null || queueManager.occupants == null) return;
+
+        for (int i = 0; i < queueManager.occupants.Length; i++)
+        {
+            if (queueManager.occupants[i] != null)
+            {
+                Destroy(queueManager.occupants[i]);
+                queueManager.FreeSpot(i);
+            }
+        }
+
+        timer = 0f;
+        Debug.Log("[PersonSpawner] Game Over — Todos los NPCs eliminados.");
     }
 
     void TrySpawnPerson()
