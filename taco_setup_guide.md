@@ -218,6 +218,15 @@ Ya fue modificado. Verificar que:
 - `Queue Manager` → Referencia al QueueManager
 - `Exit Point` → Punto de salida
 
+### Delivery Area (NUEVO):
+
+1. Crear un **GameObject vacío** (o usar un mostrador) en la zona donde se entregan los platos.
+2. Agregar un componente **BoxCollider** y marcar la opción **Is Trigger = TRUE**. Ajustar el tamaño a la zona deseada.
+3. Agregar el script **DeliveryArea**.
+4. Configurar:
+   - `Plate Tag`: "Plato"
+   - El script buscará automáticamente el `QueueManager` en la escena.
+
 ### En QueueManager:
 
 No necesita cambios, pero verificar:
@@ -403,37 +412,37 @@ Verificar que el **GameManager** tiene:
 │                                ┌──────────────┐                     │
 │                                │ NPC          │                      │
 │                                │ ├ Controller │                      │
-│                                │ └ Interaction│←─── evalúa plato    │
-│                                └──────────────┘                     │
-│                                                                      │
-│  ┌──────────────────── COCINA ────────────────────────┐             │
-│  │                                                     │             │
-│  │  Comal                    Trompo        Plancha     │             │
-│  │  ┌──────────┐           ┌──────────┐  ┌──────────┐│             │
-│  │  │ComalSocket│           │MeatCutter│  │MeatPile  ││             │
-│  │  │(x6 slots) │           │          │  │Socket    ││             │
-│  │  └────┬─────┘           └────┬─────┘  └────┬─────┘│             │
-│  │       │ cocina                │ lanza        │ asigna│             │
-│  │       ▼                      ▼               ▼      │             │
-│  │  ┌──────────────────────────────────────────────┐  │             │
-│  │  │ TORTILLA                                      │  │             │
-│  │  │ ├ TortillaManager (cocción)                   │  │             │
-│  │  │ ├ TacoAssembler (ensamblaje)                  │  │             │
-│  │  │ └ XRGrabInteractable (VR grab)               │  │             │
-│  │  └───────────────────┬──────────────────────────┘  │             │
-│  │                      │ botón secundario             │             │
-│  │                      ▼                              │             │
-│  │               ┌──────────┐                          │             │
-│  │               │ TACO     │                          │             │
-│  │               │ ├ TacoData│                          │             │
-│  │               │ └ Grab   │                          │             │
-│  │               └────┬─────┘                          │             │
-│  │                    │ se coloca                       │             │
-│  │                    ▼                                 │             │
-│  │               ┌──────────┐                          │             │
-│  │               │ PLATO    │                          │             │
-│  │               │ PlateSocket│                         │             │
-│  │               └──────────┘                          │             │
+│                                │ └ Interaction│←── evalúa plato     │
+│                                └──────────────┘         ▲            │
+│                                                         │            │
+│  ┌──────────────────── COCINA ────────────────────────┐ │            │
+│  │                                                     │ │            │
+│  │  Comal                    Trompo        Plancha     │ │            │
+│  │  ┌──────────┐           ┌──────────┐  ┌──────────┐│ │            │
+│  │  │ComalSocket│           │MeatCutter│  │MeatPile  ││ │            │
+│  │  │(x6 slots) │           │          │  │Socket    ││ │            │
+│  │  └────┬─────┘           └────┬─────┘  └────┬─────┘│ │            │
+│  │       │ cocina                │ lanza        │ asigna│ │            │
+│  │       ▼                      ▼               ▼      │ │            │
+│  │  ┌──────────────────────────────────────────────┐  │ │            │
+│  │  │ TORTILLA                                      │  │ │            │
+│  │  │ ├ TortillaManager (cocción)                   │  │ │            │
+│  │  │ ├ TacoAssembler (ensamblaje)                  │  │ │            │
+│  │  │ └ XRGrabInteractable (VR grab)               │  │ │            │
+│  │  └───────────────────┬──────────────────────────┘  │ │            │
+│  │                      │ botón secundario             │ │            │
+│  │                      ▼                              │ │            │
+│  │               ┌──────────┐                          │ │            │
+│  │               │ TACO     │                          │ │            │
+│  │               │ ├ TacoData│                          │ │            │
+│  │               │ └ Grab   │                          │ │            │
+│  │               └────┬─────┘                          │ │            │
+│  │                    │ se coloca                       │ │            │
+│  │                    ▼                                 │ │            │
+│  │               ┌──────────┐                          │ │            │
+│  │               │ PLATO    │──(entregado en)──▶ ┌────────────┐      │
+│  │               │ PlateSocket│                   │DeliveryArea│      │
+│  │               └──────────┘                    └────────────┘      │
 │  └─────────────────────────────────────────────────────┘             │
 │                                                                      │
 └──────────────────────────────────────────────────────────────────────┘

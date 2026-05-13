@@ -30,4 +30,22 @@ public class QueueManager : MonoBehaviour
     {
         occupants[index] = null;
     }
+
+    // Retorna todos los NPCs activos en la fila
+    public System.Collections.Generic.List<PersonInteraction> GetActiveCustomers()
+    {
+        System.Collections.Generic.List<PersonInteraction> customers = new System.Collections.Generic.List<PersonInteraction>();
+        foreach (GameObject occupant in occupants)
+        {
+            if (occupant != null)
+            {
+                PersonInteraction pi = occupant.GetComponent<PersonInteraction>();
+                if (pi != null)
+                {
+                    customers.Add(pi);
+                }
+            }
+        }
+        return customers;
+    }
 }

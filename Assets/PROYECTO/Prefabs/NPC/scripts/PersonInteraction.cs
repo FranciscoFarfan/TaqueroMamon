@@ -14,13 +14,6 @@ public class PersonInteraction : MonoBehaviour
     //  INSPECTOR
     // ═══════════════════════════════════════════════════════════════════════════
 
-    [Header("Detección")]
-    [Tooltip("Radio de detección para buscar platos cercanos.")]
-    [SerializeField] private float detectionRadius = 1.5f;
-
-    [Tooltip("Tag del plato.")]
-    [SerializeField] private string plateTag = "Plato";
-
     [Header("Economía")]
     [Tooltip("Puntos por cada taco que coincide con el pedido.")]
     [SerializeField] private int pointsPerMatchingTaco = 10;
@@ -66,27 +59,7 @@ public class PersonInteraction : MonoBehaviour
         _controller = GetComponent<PersonController>();
     }
 
-    void Update()
-    {
-        if (_isLeaving || _hasReceivedPlate) return;
-        if (!_hasArrived) return;
-        if (_assignedOrder == null) return;
 
-        // Buscar platos cercanos
-        Collider[] hits = Physics.OverlapSphere(transform.position, detectionRadius);
-        foreach (Collider hit in hits)
-        {
-            if (hit.CompareTag(plateTag))
-            {
-                PlateSocket plate = hit.GetComponentInParent<PlateSocket>();
-                if (plate != null && plate.TacoCount > 0)
-                {
-                    EvaluatePlate(plate);
-                    break;
-                }
-            }
-        }
-    }
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  API PÚBLICA
@@ -137,8 +110,9 @@ public class PersonInteraction : MonoBehaviour
     /// <summary>
     /// Evalúa el plato entregado contra el pedido del NPC.
     /// Solo paga los tacos que coinciden con el tipo de carne pedido.
+    /// Llamado desde DeliveryArea.
     /// </summary>
-    private void EvaluatePlate(PlateSocket plate)
+    public void DeliverPlate(PlateSocket plate)
     {
         _hasReceivedPlate = true;
 
@@ -235,13 +209,4 @@ public class PersonInteraction : MonoBehaviour
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  GIZMOS
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, detectionRadius);
-    }
 }
