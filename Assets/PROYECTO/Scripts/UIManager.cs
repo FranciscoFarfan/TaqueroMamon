@@ -73,10 +73,6 @@ public class UIManager : MonoBehaviour
     [Tooltip("Texto del puntaje/dinero del jugador.")]
     [SerializeField] private TMP_Text scoreText;
 
-    [Header("HUD — Tacos entregados")]
-    [Tooltip("Texto que muestra el total de tacos entregados en la partida actual.")]
-    [SerializeField] private TMP_Text tacosDeliveredText;
-
     [Header("HUD — Contenedor")]
     [Tooltip("GameObject padre del HUD (para mostrar/ocultar).")]
     [SerializeField] private GameObject hudContainer;
@@ -329,10 +325,9 @@ public class UIManager : MonoBehaviour
         if (_subscribed) return;
         if (GameManager.Instance == null) return;
 
-        GameManager.Instance.OnScoreChanged          += UpdateScore;
-        GameManager.Instance.OnOrdersChanged         += UpdateOrders;
-        GameManager.Instance.OnGameOver              += ShowGameOver;
-        GameManager.Instance.OnTacosDeliveredChanged += UpdateTacosDelivered;
+        GameManager.Instance.OnScoreChanged  += UpdateScore;
+        GameManager.Instance.OnOrdersChanged += UpdateOrders;
+        GameManager.Instance.OnGameOver      += ShowGameOver;
 
         _subscribed = true;
     }
@@ -342,10 +337,9 @@ public class UIManager : MonoBehaviour
         if (!_subscribed) return;
         if (GameManager.Instance == null) return;
 
-        GameManager.Instance.OnScoreChanged          -= UpdateScore;
-        GameManager.Instance.OnOrdersChanged         -= UpdateOrders;
-        GameManager.Instance.OnGameOver              -= ShowGameOver;
-        GameManager.Instance.OnTacosDeliveredChanged -= UpdateTacosDelivered;
+        GameManager.Instance.OnScoreChanged  -= UpdateScore;
+        GameManager.Instance.OnOrdersChanged -= UpdateOrders;
+        GameManager.Instance.OnGameOver      -= ShowGameOver;
 
         _subscribed = false;
     }
@@ -393,12 +387,7 @@ public class UIManager : MonoBehaviour
         _previousScore = score;
     }
 
-    /// <summary>Actualiza el texto de tacos entregados cuando cambia.</summary>
-    private void UpdateTacosDelivered(int total)
-    {
-        if (tacosDeliveredText != null)
-            tacosDeliveredText.text = $"{total}";
-    }
+
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  ACTUALIZACIÓN DEL TENDEDERO
@@ -506,10 +495,6 @@ public class UIManager : MonoBehaviour
 
         _lastCountdownSecond = -1;
         _previousScore = 0;
-
-        // Resetear display de tacos entregados
-        if (tacosDeliveredText != null)
-            tacosDeliveredText.text = "0";
     }
 
     /// <summary>

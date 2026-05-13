@@ -70,12 +70,11 @@ public class GameManager : MonoBehaviour
     //  ESTADO PRIVADO
     // ═══════════════════════════════════════════════════════════════════════════
 
-    private bool   _isGameRunning    = false;
-    private float  _timeRemaining    = 0f;
-    private int    _score            = 0;
-    private int    _tacosDelivered   = 0;
-    private string _playerName       = "AAA";
-    private int    _nextOrderId      = 0;
+    private bool   _isGameRunning  = false;
+    private float  _timeRemaining  = 0f;
+    private int    _score          = 0;
+    private string _playerName     = "AAA";
+    private int    _nextOrderId    = 0;
 
     private readonly List<TacoOrder> _activeOrders = new List<TacoOrder>();
 
@@ -91,9 +90,6 @@ public class GameManager : MonoBehaviour
 
     /// <summary>Puntuación / dinero actual del jugador.</summary>
     public int Score => _score;
-
-    /// <summary>Total de tacos entregados correctamente en la partida actual.</summary>
-    public int TacosDelivered => _tacosDelivered;
 
     /// <summary>Nombre del jugador (3 caracteres).</summary>
     public string PlayerName => _playerName;
@@ -113,9 +109,6 @@ public class GameManager : MonoBehaviour
 
     /// <summary>Se dispara cuando la partida termina, pasa el score final.</summary>
     public event Action<int> OnGameOver;
-
-    /// <summary>Se dispara cada vez que se entrega un taco correctamente (pasa el total acumulado).</summary>
-    public event Action<int> OnTacosDeliveredChanged;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  UNITY LOOP
@@ -157,10 +150,9 @@ public class GameManager : MonoBehaviour
         _playerName = playerName;
 
         // Resetear estado
-        _score           = 0;
-        _tacosDelivered  = 0;
-        _timeRemaining   = gameDuration;
-        _nextOrderId     = 0;
+        _score         = 0;
+        _timeRemaining = gameDuration;
+        _nextOrderId   = 0;
         _activeOrders.Clear();
 
         // Cambiar mundo
@@ -249,10 +241,6 @@ public class GameManager : MonoBehaviour
         order.Complete();
         _activeOrders.Remove(order);
 
-        // Contabilizar tacos entregados (usa el número de tacos del pedido completado)
-        _tacosDelivered += order.TacoCount;
-        OnTacosDeliveredChanged?.Invoke(_tacosDelivered);
-
         AddPoints(reward);
 
         // Reemplazar con un pedido nuevo (sólo si el juego sigue corriendo)
@@ -261,7 +249,7 @@ public class GameManager : MonoBehaviour
 
         OnOrdersChanged?.Invoke(ActiveOrders);
 
-        Debug.Log($"[GameManager] Pedido #{orderId} completado. Tacos entregados total: {_tacosDelivered}. Recompensa: {reward}");
+        Debug.Log($"[GameManager] Pedido #{orderId} completado. Recompensa: {reward}");
     }
 
     /// <summary>
