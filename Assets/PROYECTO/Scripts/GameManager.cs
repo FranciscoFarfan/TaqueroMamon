@@ -239,11 +239,11 @@ public class GameManager : MonoBehaviour
     /// <param name="reward">Puntos que paga el NPC.</param>
     public void OrderCompleted(int orderId, int reward)
     {
-        TacoOrder order = _activeOrders.Find(o => o.OrderId == orderId);
-        if (order == null) return;
+        int index = _activeOrders.FindIndex(o => o != null && o.OrderId == orderId);
+        if (index == -1) return;
 
+        TacoOrder order = _activeOrders[index];
         order.Complete();
-        _activeOrders.Remove(order);
 
         // INCREMENTAR CONTADOR DE TACOS
         _tacosDelivered += order.TacoCount; 
@@ -251,7 +251,15 @@ public class GameManager : MonoBehaviour
 
         AddPoints(reward);
 
-        if (_isGameRunning) GenerateNewOrder();
+        if (_isGameRunning) 
+        {
+            _activeOrders[index] = CreateNewOrder();
+        }
+        else
+        {
+            _activeOrders[index] = null;
+        }
+
         OnOrdersChanged?.Invoke(ActiveOrders);
     }
 
@@ -262,13 +270,17 @@ public class GameManager : MonoBehaviour
     /// <param name="orderId">ID del pedido fallido.</param>
     public void OrderFailed(int orderId)
     {
-        TacoOrder order = _activeOrders.Find(o => o.OrderId == orderId);
-        if (order == null) return;
-
-        _activeOrders.Remove(order);
+        int index = _activeOrders.FindIndex(o => o != null && o.OrderId == orderId);
+        if (index == -1) return;
 
         if (_isGameRunning)
-            GenerateNewOrder();
+        {
+            _activeOrders[index] = CreateNewOrder();
+        }
+        else
+        {
+            _activeOrders[index] = null;
+        }
 
         OnOrdersChanged?.Invoke(ActiveOrders);
 
@@ -303,18 +315,21 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>Genera un nuevo pedido aleatorio y lo agrega a la lista activa.</summary>
-    private void GenerateNewOrder()
+    private TacoOrder CreateNewOrder()
     {
-        if (_activeOrders.Count >= maxActiveOrders) return;
-
         int    tacoCount = Random.Range(1, 6);          // 1–5 tacos
         string meat      = PickWeightedMeat();
         int    reward    = tacoCount * pointsPerTaco;
 
         TacoOrder newOrder = new TacoOrder(_nextOrderId++, tacoCount, meat, reward);
-        _activeOrders.Add(newOrder);
-
         Debug.Log($"[GameManager] Nuevo pedido #{newOrder.OrderId}: {tacoCount}x {meat} (${reward})");
+        return newOrder;
+    }
+
+    private void GenerateNewOrder()
+    {
+        if (_activeOrders.Count >= maxActiveOrders) return;
+        _activeOrders.Add(CreateNewOrder());
     }
 
     /// <summary>
@@ -329,7 +344,7 @@ public class GameManager : MonoBehaviour
         {
             chosen = SampleWeightedMeat();
             // Si no hay duplicado entre pedidos activos, o ya no quedan opciones únicas, aceptar
-            bool alreadyActive = _activeOrders.Exists(o => o.MeatType == chosen);
+            bool alreadyActive = _activeOrders.Exists(o => o != null && o.MeatType == chosen);
             if (!alreadyActive || _activeOrders.Count >= availableMeats.Length)
                 break;
         }
