@@ -96,7 +96,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000000, guid: c6a4fdb47f8dd134f9cd6968231aefca, type: 2}
+  m_LightingDataAsset: {fileID: 0}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 88accb23714204840ad2adfde1cda0ee, type: 2}
 --- !u!196 &4
 NavMeshSettings:
@@ -3518,7 +3518,7 @@ Light:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingLayerMask: 1
-  m_Lightmapping: 1
+  m_Lightmapping: 4
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
@@ -5481,84 +5481,6 @@ Transform:
   - {fileID: 1078163458}
   m_Father: {fileID: 269141991}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &652079962
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 652079963}
-  - component: {fileID: 652079964}
-  m_Layer: 0
-  m_Name: Light Probe Group
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &652079963
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 652079962}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 21.391, y: -14.948, z: 2.07}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2061391802}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!220 &652079964
-LightProbeGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 652079962}
-  m_Enabled: 1
-  m_SourcePositions:
-  - {x: 1, y: 1, z: 1}
-  - {x: 1, y: 1, z: -1}
-  - {x: 1, y: -1, z: 1}
-  - {x: 1, y: -1, z: -1}
-  - {x: -1, y: 1, z: 1}
-  - {x: -1, y: 1, z: -1}
-  - {x: -1, y: -1, z: 1}
-  - {x: -1, y: -1, z: -1}
-  - {x: 1, y: 1, z: 0.0036141872}
-  - {x: 1, y: -1, z: 0.0036141872}
-  - {x: -1, y: 1, z: 0.0036141872}
-  - {x: -1, y: -1, z: 0.0036141872}
-  - {x: -0.0014476776, y: 1, z: 0.99999976}
-  - {x: -0.0014476776, y: 1, z: -1.0000002}
-  - {x: -0.0014476776, y: -1, z: 0.99999976}
-  - {x: -0.0014476776, y: -1, z: -1.0000002}
-  - {x: -0.0014476776, y: 1, z: 0.0036141872}
-  - {x: -0.0014476776, y: -1, z: 0.0036141872}
-  - {x: 2.0567722, y: 1, z: 0.99999976}
-  - {x: 2.0567722, y: 1, z: -1.0000002}
-  - {x: 2.0567722, y: -1, z: 0.99999976}
-  - {x: 2.0567722, y: -1, z: -1.0000002}
-  - {x: 2.0567722, y: 1, z: 0.0036141872}
-  - {x: 2.0567722, y: -1, z: 0.0036141872}
-  - {x: 3.2433567, y: 1, z: 0.99999976}
-  - {x: 3.2433567, y: 1, z: -1.0000002}
-  - {x: 3.2433567, y: -1, z: 0.99999976}
-  - {x: 3.2433567, y: -1, z: -1.0000002}
-  - {x: 3.2433567, y: 1, z: 0.0036141872}
-  - {x: 3.2433567, y: -1, z: 0.0036141872}
-  - {x: 4.6487236, y: 1, z: 0.99999976}
-  - {x: 4.6487236, y: 1, z: -1.0000002}
-  - {x: 4.6487236, y: -1, z: 0.99999976}
-  - {x: 4.6487236, y: -1, z: -1.0000002}
-  - {x: 4.6487236, y: 1, z: 0.0036141872}
-  - {x: 4.6487236, y: -1, z: 0.0036141872}
-  m_Dering: 1
 --- !u!1 &658639073
 GameObject:
   m_ObjectHideFlags: 0
@@ -15358,7 +15280,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 426610298}
-  - {fileID: 652079963}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2061769839
@@ -17729,7 +17650,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!23 &251128540241272692
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -25999,7 +25920,7 @@ MonoBehaviour:
   m_Camera: {fileID: 0}
   m_OriginBaseGameObject: {fileID: 7841813443783070752}
   m_CameraFloorOffsetObject: {fileID: 6257755147471719564}
-  m_RequestedTrackingOriginMode: 0
+  m_RequestedTrackingOriginMode: 2
   m_CameraYOffset: 1.36144
   m_CameraGameObject: {fileID: 6328108181912847692}
 --- !u!1 &1526129924879190271
