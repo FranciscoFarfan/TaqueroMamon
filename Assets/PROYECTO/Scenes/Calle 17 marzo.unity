@@ -17650,7 +17650,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!23 &251128540241272692
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -25905,24 +25905,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
   m_IsActive: 1
---- !u!114 &1523310007339632762
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7841813443783070752}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7448815bd5148434682b3d931066cd10, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Camera: {fileID: 0}
-  m_OriginBaseGameObject: {fileID: 7841813443783070752}
-  m_CameraFloorOffsetObject: {fileID: 6257755147471719564}
-  m_RequestedTrackingOriginMode: 2
-  m_CameraYOffset: 1.36144
-  m_CameraGameObject: {fileID: 6328108181912847692}
 --- !u!1 &1526129924879190271
 GameObject:
   m_ObjectHideFlags: 0
@@ -36027,7 +36009,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Timeout: 10
-  m_XROrigin: {fileID: 1523310007339632762}
+  m_XROrigin: {fileID: 7841813443783070753}
 --- !u!4 &3073656086046392311
 Transform:
   m_ObjectHideFlags: 0
@@ -66659,7 +66641,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1933188666558471683}
-  - component: {fileID: 1523310007339632762}
+  - component: {fileID: 7841813443783070753}
   - component: {fileID: 3068643330932095429}
   - component: {fileID: 438732037623263965}
   - component: {fileID: 4808755230434979311}
@@ -66671,6 +66653,23 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &7841813443783070753
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7841813443783070752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0cb9aa70a22847b5925ee5f067c10a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Camera: {fileID: 4672340645687266743}
+  m_OriginBaseGameObject: {fileID: 7841813443783070752}
+  m_CameraFloorOffsetObject: {fileID: 6257755147471719564}
+  m_RequestedTrackingOriginMode: 2
+  m_CameraYOffset: 1.1176
 --- !u!23 &7851288439584794804
 MeshRenderer:
   m_ObjectHideFlags: 0

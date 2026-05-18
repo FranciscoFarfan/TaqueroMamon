@@ -116,6 +116,8 @@ MonoBehaviour:
   - {fileID: 3774145548049987838}
   - {fileID: 3461835506235130938}
   - {fileID: 5664640298627389965}
+  tacoRotationOffset: {x: -90, y: 0, z: 0}
+  tacoPositionOffset: {x: 0, y: 0, z: 0.01}
   placeTacoSound: {fileID: 0}
 --- !u!54 &8748108282316456200
 Rigidbody:
