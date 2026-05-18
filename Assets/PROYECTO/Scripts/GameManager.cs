@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit;
 using Random = UnityEngine.Random;
 
 /// <summary>
@@ -53,6 +54,13 @@ public class GameManager : MonoBehaviour
 
     [Tooltip("(Opcional) Controlador de la iluminación ambiental. Si se asigna, hará la transición mañana↔día automáticamente.")]
     [SerializeField] private AmbientLightController ambientLightController;
+
+    [Header("Manos del jugador")]
+    [Tooltip("XRDirectInteractor de la mano izquierda (para forzar soltar objetos al terminar).")]
+    [SerializeField] private XRDirectInteractor leftHandInteractor;
+
+    [Tooltip("XRDirectInteractor de la mano derecha (para forzar soltar objetos al terminar).")]
+    [SerializeField] private XRDirectInteractor rightHandInteractor;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  INSPECTOR ─ Configuración del juego
@@ -206,6 +214,9 @@ public class GameManager : MonoBehaviour
 
         _isGameRunning = false;
 
+        // Forzar que el jugador suelte todo lo que tenga en las manos
+        ForceReleaseHeldObjects();
+
         // Desactivar preventivamente las pantallas del menú antes de que se active el worldInactive
         if (UIManager.Instance != null)
         {
@@ -337,6 +348,62 @@ public class GameManager : MonoBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.ShowToast($"{reason}: -${penalty}");
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  API PÚBLICA ─ Limpieza de objetos de gameplay
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Destruye todos los objetos de gameplay sueltos en la escena
+    /// (tortillas, trozos de pastor, tacos, platos).
+    /// Se usa para reiniciar la partida sin recargar la escena.
+    /// </summary>
+    public void ResetGameplayObjects()
+    {
+        string[] gameplayTags = { "Tortilla", "Pastor", "taco", "Plato" };
+
+        foreach (string tag in gameplayTags)
+        {
+            GameObject[] objects = GameObject.FindGameObjectsWithTag(tag);
+            foreach (GameObject obj in objects)
+            {
+                Destroy(obj);
+            }
+            if (objects.Length > 0)
+                Debug.Log($"[GameManager] Limpieza: {objects.Length} objetos con tag '{tag}' destruidos.");
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PRIVADO ─ Forzar liberación de objetos en las manos
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Fuerza a ambas manos a soltar cualquier objeto que estén sosteniendo.
+    /// Se llama al terminar la partida para que el jugador no se quede con objetos.
+    /// </summary>
+    private void ForceReleaseHeldObjects()
+    {
+        ReleaseInteractor(leftHandInteractor);
+        ReleaseInteractor(rightHandInteractor);
+    }
+
+    private void ReleaseInteractor(XRDirectInteractor interactor)
+    {
+        if (interactor == null) return;
+        if (!interactor.hasSelection) return;
+
+        // Copiar la lista porque SelectExit la modifica
+        var selected = new List<IXRSelectInteractable>(interactor.interactablesSelected);
+        foreach (var interactable in selected)
+        {
+            if (interactor.interactionManager != null)
+            {
+                interactor.interactionManager.SelectExit(interactor, interactable);
+                Debug.Log($"[GameManager] Forzado soltar: {interactable}");
+            }
         }
     }
 

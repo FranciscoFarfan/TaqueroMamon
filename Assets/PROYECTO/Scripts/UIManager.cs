@@ -668,15 +668,29 @@ public class UIManager : MonoBehaviour
     /// <summary>Callback del botón "Restart rápido" en Game Over.</summary>
     private void OnQuickRestartPressed()
     {
-        // Guardar el nombre actual para volver a empezar con él
-        shouldStartGameOnLoad = true;
-        restartPlayerName = new string(_currentNameChars);
-
         // Detener la música de menú
         StopMenuMusic();
 
-        // Recargar la escena actual para reiniciar todo
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        // Limpiar objetos de la partida anterior
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.ResetGameplayObjects();
+        }
+
+        // Teletransportar al jugador a la zona de juego
+        TeleportPlayer(teleportStartPoint);
+
+        // Mostrar HUD
+        ShowGameHUD();
+
+        // Usar el nombre actual para volver a empezar
+        string playerName = new string(_currentNameChars);
+        
+        // Iniciar el juego directamente
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.StartGame(playerName);
+        }
     }
 
     /// <summary>Callback del botón "Guardar" en Game Over (solo si es top 10).</summary>
