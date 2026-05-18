@@ -6375,6 +6375,64 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 716273199}
   m_CullTransparentMesh: 1
+--- !u!1 &717581156
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 717581157}
+  - component: {fileID: 717581158}
+  m_Layer: 0
+  m_Name: AmbienLightController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &717581157
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717581156}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2061391802}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &717581158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717581156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27a354a814cda974ead9c2c797af0c25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sunLight: {fileID: 426610297}
+  morningSunColor: {r: 1, g: 0.75, b: 0.45, a: 1}
+  morningSunIntensity: 0.8
+  morningSunRotation: {x: 175, y: -30, z: 0}
+  morningAmbientColor: {r: 0.85, g: 0.65, b: 0.55, a: 1}
+  morningAmbientIntensity: 0.6
+  morningSkybox: {fileID: 0}
+  daySunColor: {r: 1, g: 0.97, b: 0.88, a: 1}
+  daySunIntensity: 1.5
+  daySunRotation: {x: 65, y: 10, z: 0}
+  dayAmbientColor: {r: 0.7, g: 0.8, b: 1, a: 1}
+  dayAmbientIntensity: 1
+  daySkybox: {fileID: 0}
+  transitionDuration: 3
 --- !u!1 &731999715
 GameObject:
   m_ObjectHideFlags: 0
@@ -15420,6 +15478,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 426610298}
+  - {fileID: 717581157}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2061769839
@@ -59028,6 +59087,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   worldActive: {fileID: 245662033}
   worldInactive: {fileID: 1825038262}
+  ambientLightController: {fileID: 717581158}
   gameDuration: 180
   maxActiveOrders: 3
   availableMeats:

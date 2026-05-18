@@ -51,6 +51,9 @@ public class GameManager : MonoBehaviour
     [Tooltip("GameObject con todo lo estático cuando el juego NO ha iniciado (taquería cerrada).")]
     [SerializeField] private GameObject worldInactive;
 
+    [Tooltip("(Opcional) Controlador de la iluminación ambiental. Si se asigna, hará la transición mañana↔día automáticamente.")]
+    [SerializeField] private AmbientLightController ambientLightController;
+
     // ═══════════════════════════════════════════════════════════════════════════
     //  INSPECTOR ─ Configuración del juego
     // ═══════════════════════════════════════════════════════════════════════════
@@ -173,6 +176,10 @@ public class GameManager : MonoBehaviour
         // Cambiar mundo
         SetWorldState(gameRunning: true);
 
+        // Transicionar la iluminación a ambiente de DÍA
+        if (ambientLightController != null)
+            ambientLightController.TransitionToDay();
+
         // Generar pedidos iniciales
         for (int i = 0; i < maxActiveOrders; i++)
             GenerateNewOrder();
@@ -206,6 +213,10 @@ public class GameManager : MonoBehaviour
         }
 
         SetWorldState(gameRunning: false);
+
+        // Transicionar la iluminación de vuelta a ambiente de MAÑANA
+        if (ambientLightController != null)
+            ambientLightController.TransitionToMorning();
 
         // Liberar el cursor para poder usar menús
         Cursor.lockState = CursorLockMode.None;
