@@ -222,7 +222,7 @@ public class GameManager : MonoBehaviour
     public void SubtractPoints(int amount)
     {
         if (amount <= 0) return;
-        _score = Mathf.Max(0, _score - amount);
+        _score -= amount; // Se permite bajar de 0 para que las deudas/mermas se reflejen correctamente
         OnScoreChanged?.Invoke(_score);
         Debug.Log($"[GameManager] -{amount} puntos → Total: {_score}");
     }

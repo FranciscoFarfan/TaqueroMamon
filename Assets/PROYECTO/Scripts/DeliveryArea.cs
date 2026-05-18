@@ -28,20 +28,8 @@ public class DeliveryArea : MonoBehaviour
         if (other.CompareTag(plateTag))
         {
             PlateSocket plate = other.GetComponentInParent<PlateSocket>();
-            if (plate != null && plate.TacoCount > 0)
+            if (plate != null && plate.TacoCount > 0 && !plate.IsDelivered)
             {
-                // Si el jugador lo tiene agarrado, forzar que lo suelte
-                XRGrabInteractable grab = plate.GetComponent<XRGrabInteractable>();
-                if (grab != null && grab.isSelected)
-                {
-                    XRInteractionManager manager = grab.interactionManager;
-                    IXRSelectInteractor interactor = grab.firstInteractorSelecting;
-                    if (manager != null && interactor != null)
-                    {
-                        manager.SelectExit(interactor, grab);
-                    }
-                }
-                
                 EvaluateAndDeliverPlate(plate);
             }
         }
@@ -59,7 +47,7 @@ public class DeliveryArea : MonoBehaviour
         }
 
         PersonInteraction bestMatch = null;
-        int highestScore = -9999;
+        int minWaste = 9999;
 
         foreach (PersonInteraction customer in activeCustomers)
         {
@@ -67,33 +55,55 @@ public class DeliveryArea : MonoBehaviour
 
             TacoOrder order = customer.AssignedOrder;
             
-            // Calculamos un puntaje de coincidencia.
-            // 1. Puntos por cada taco que coincide con el tipo de carne del pedido
             int matchingTacos = plate.CountMatchingTacos(order.MeatType);
             
-            // 2. Penalización o bono por la cantidad de tacos
-            int countDiff = Mathf.Abs(order.TacoCount - plate.TacoCount);
+            // Requisito estricto: El plato debe tener al menos la cantidad de tacos de ESA carne que pide el cliente
+            // Si el cliente pide 3 Bistec y solo llevas 2, no lo acepta.
+            if (matchingTacos < order.TacoCount) continue;
             
-            // Fórmula: Prioriza quien tenga más coincidencias. Desempata quien haya pedido exactamente esa cantidad de tacos.
-            int score = (matchingTacos * 10) - countDiff;
+            // Calculamos la merma: Cualquier taco en el plato que no sea parte de lo que pidió el cliente es merma
+            // (Ya sean tacos extra de la misma carne o tacos de otra carne)
+            int waste = plate.TacoCount - order.TacoCount;
 
-            if (score > highestScore)
+            // Buscamos el match que deje la menor cantidad de desperdicio
+            if (waste < minWaste)
             {
-                highestScore = score;
+                minWaste = waste;
                 bestMatch = customer;
             }
         }
 
-        // Entregar al mejor match, incluso si no coinciden (la lógica de fallo se maneja en PersonInteraction)
-        // Opcionalmente, se podría validar si el score es mayor a cierto mínimo para evitar entregas sin sentido
+        // Si encontramos un cliente que acepte el plato
         if (bestMatch != null)
         {
-            Debug.Log($"[DeliveryArea] Entregando plato al NPC '{bestMatch.gameObject.name}' con puntaje {highestScore}");
+            // Forzar que el jugador suelte el plato (ahora sí se lo van a quitar)
+            XRGrabInteractable grab = plate.GetComponent<XRGrabInteractable>();
+            if (grab != null && grab.isSelected)
+            {
+                XRInteractionManager manager = grab.interactionManager;
+                IXRSelectInteractor interactor = grab.firstInteractorSelecting;
+                if (manager != null && interactor != null)
+                {
+                    manager.SelectExit(interactor, grab);
+                }
+            }
+
+            plate.IsDelivered = true;
+            Debug.Log($"[DeliveryArea] Entregando plato al NPC '{bestMatch.gameObject.name}'. Merma total: {minWaste}");
+            
+            // Descontar pérdida por tacos extra o equivocados
+            if (minWaste > 0 && GameManager.Instance != null)
+            {
+                GameManager.Instance.ApplyPenalty(minWaste * 10, $"Merma de tacos ({minWaste})");
+            }
+            
             bestMatch.DeliverPlate(plate);
         }
         else
         {
-            Debug.Log("[DeliveryArea] No hay clientes válidos para recibir el plato.");
+            // Nadie acepta el plato (no cumple cantidad mínima o tiene carne equivocada)
+            // No se quita de la mano, no se cobra penalización y no se destruye.
+            Debug.Log("[DeliveryArea] Plato rechazado (No cumple cantidad o carne de ningún pedido). El jugador lo conserva.");
         }
     }
 }

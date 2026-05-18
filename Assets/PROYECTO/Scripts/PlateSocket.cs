@@ -32,6 +32,12 @@ public class PlateSocket : MonoBehaviour
     [Tooltip("Puntos donde los tacos se colocan visualmente sobre el plato. Si está vacío, se apilan.")]
     [SerializeField] private Transform[] tacoSnapPoints;
 
+    [Tooltip("Offset de rotación a aplicar a los tacos para corregir su orientación.")]
+    [SerializeField] private Vector3 tacoRotationOffset = Vector3.zero;
+
+    [Tooltip("Offset de posición a aplicar a los tacos para corregir su ubicación.")]
+    [SerializeField] private Vector3 tacoPositionOffset = Vector3.zero;
+
     [Header("Audio (opcional)")]
     [Tooltip("Sonido al colocar un taco en el plato.")]
     [SerializeField] private AudioClip placeTacoSound;
@@ -52,6 +58,9 @@ public class PlateSocket : MonoBehaviour
 
     /// <summary>¿Está lleno el plato?</summary>
     public bool IsFull => _tacosOnPlate.Count >= maxTacos;
+
+    /// <summary>Indica si el plato ya fue entregado a un cliente para evitar entregas duplicadas.</summary>
+    public bool IsDelivered { get; set; } = false;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  UNITY
@@ -107,6 +116,13 @@ public class PlateSocket : MonoBehaviour
             tacoRb.angularVelocity = Vector3.zero;
         }
 
+        // Desactivar colisionadores para evitar interacciones físicas inestables con el plato
+        Collider[] tacoColliders = tacoData.GetComponentsInChildren<Collider>();
+        foreach (Collider col in tacoColliders)
+        {
+            col.enabled = false;
+        }
+
         // Hacer el taco hijo del plato
         Transform tacoRoot = tacoData.transform;
         tacoRoot.SetParent(transform);
@@ -115,14 +131,14 @@ public class PlateSocket : MonoBehaviour
         int index = _tacosOnPlate.Count;
         if (tacoSnapPoints != null && index < tacoSnapPoints.Length)
         {
-            tacoRoot.localPosition = tacoSnapPoints[index].localPosition;
-            tacoRoot.localRotation = tacoSnapPoints[index].localRotation;
+            tacoRoot.localPosition = tacoSnapPoints[index].localPosition + tacoPositionOffset;
+            tacoRoot.localRotation = tacoSnapPoints[index].localRotation * Quaternion.Euler(tacoRotationOffset);
         }
         else
         {
             // Si no hay snap points, apilar verticalmente
-            tacoRoot.localPosition = Vector3.up * (0.02f * index);
-            tacoRoot.localRotation = Quaternion.identity;
+            tacoRoot.localPosition = (Vector3.up * (0.02f * index)) + tacoPositionOffset;
+            tacoRoot.localRotation = Quaternion.Euler(tacoRotationOffset);
         }
 
         // Agregar a la lista

@@ -133,13 +133,14 @@ public class PersonInteraction : MonoBehaviour
 
         if (matchingTacos > 0)
         {
-            // Pagar solo por los tacos que coinciden
-            int reward = matchingTacos * pointsPerMatchingTaco;
+            // Pagar solo por los tacos que coinciden, topado a la cantidad que pidió
+            int tacosToPay = Mathf.Min(matchingTacos, _assignedOrder.TacoCount);
+            int reward = tacosToPay * pointsPerMatchingTaco;
 
             if (GameManager.Instance != null)
                 GameManager.Instance.OrderCompleted(_assignedOrder.OrderId, reward);
 
-            Debug.Log($"[PersonInteraction] NPC pagó ${reward} por {matchingTacos} tacos de {_assignedOrder.MeatType}.");
+            Debug.Log($"[PersonInteraction] NPC pagó ${reward} por {tacosToPay} tacos de {_assignedOrder.MeatType}.");
         }
         else
         {
