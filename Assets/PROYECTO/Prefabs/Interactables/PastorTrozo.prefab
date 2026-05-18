@@ -14,9 +14,8 @@ GameObject:
   - component: {fileID: 3223570177716701549}
   - component: {fileID: 5429023591590763450}
   - component: {fileID: 1323312632131427192}
-  - component: {fileID: 1558463662288794793}
-  - component: {fileID: -5990716520315968941}
   - component: {fileID: -5143585568388323894}
+  - component: {fileID: -8486443986509552116}
   m_Layer: 0
   m_Name: PastorTrozo
   m_TagString: Pastor
@@ -291,36 +290,6 @@ CapsuleCollider:
   m_Height: 0.4
   m_Direction: 1
   m_Center: {x: -0.020992465, y: -0.014101196, z: 0.007843017}
---- !u!114 &1558463662288794793
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3579812954886435079}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d163baad390ad684ba84c489dede980a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  penaltyPoints: 3
-  penaltyReason: Carne de pastor caida
-  floorTag: Floor
-  useVelocityFallback: 0
-  velocityThreshold: -3
---- !u!114 &-5990716520315968941
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3579812954886435079}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8b77f26143762d84b8d42115bc286dc8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  minY: -1
 --- !u!114 &-5143585568388323894
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -335,3 +304,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   positionOffset: {x: 0, y: 0, z: 0}
   rotationOffset: {x: 0, y: 0, z: 0}
+--- !u!114 &-8486443986509552116
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3579812954886435079}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6369499df9159c4d9ea24c9a73b1694, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minY: -1
+  penaltyPoints: 1
+  penaltyReason: "Carne ca\xEDda"

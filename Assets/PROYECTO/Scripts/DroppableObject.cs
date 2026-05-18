@@ -87,11 +87,28 @@ public class DroppableObject : MonoBehaviour
         if (_hasFallen) return;
         _hasFallen = true;
 
-        // Solo penalizar si hay partida en curso
-        if (GameManager.Instance != null && GameManager.Instance.IsGameRunning)
+        // Verificar si es un plato para calcular penalización dinámica según cantidad de tacos
+        PlateSocket plate = GetComponent<PlateSocket>();
+        if (plate != null)
+        {
+            // 5 pesos si está vacío, +10 pesos por cada taco
+            penaltyPoints = 5 + (plate.TacoCount * 10);
+            penaltyReason = $"Plato caído ({plate.TacoCount} tacos)";
+        }
+
+        // Verificar si es una tortilla quemada para evitar doble penalización
+        bool shouldPenalize = true;
+        TortillaManager tortilla = GetComponent<TortillaManager>();
+        if (tortilla != null && tortilla.CurrentState == TortillaManager.TortillaState.Burnt)
+        {
+            shouldPenalize = false;
+        }
+
+        // Solo penalizar si hay partida en curso y no es una tortilla ya quemada
+        if (shouldPenalize && GameManager.Instance != null && GameManager.Instance.IsGameRunning)
             GameManager.Instance.ApplyPenalty(penaltyPoints, penaltyReason);
 
-        Debug.Log($"[DroppableObject] '{gameObject.name}' cayó. Penalización: -{penaltyPoints}");
+        Debug.Log($"[DroppableObject] '{gameObject.name}' cayó. Penalización aplicada: {shouldPenalize} (-{penaltyPoints})");
 
         Destroy(gameObject);
     }

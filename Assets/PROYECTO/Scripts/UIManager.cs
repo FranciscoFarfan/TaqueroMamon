@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// UIManager — Gestiona toda la UI del juego de tacos VR.
@@ -26,10 +27,14 @@ using TMPro;
 public class UIManager : MonoBehaviour
 {
     // ═══════════════════════════════════════════════════════════════════════════
-    //  SINGLETON
+    //  SINGLETON & STATIC RELOAD STATE
     // ═══════════════════════════════════════════════════════════════════════════
 
     public static UIManager Instance { get; private set; }
+
+    public static bool shouldStartGameOnLoad = false;
+    public static string restartPlayerName = "AAA";
+    public static bool shouldShowScoresOnLoad = false;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  INSPECTOR — TELETRANSPORTE
@@ -73,6 +78,15 @@ public class UIManager : MonoBehaviour
     [Tooltip("Texto del puntaje/dinero del jugador.")]
     [SerializeField] private TMP_Text scoreText;
 
+    [Tooltip("Texto TMP en la tarjeta general del mundo para mostrar el motivo de la penalización/ganancia.")]
+    [SerializeField] private TMP_Text scoreFeedbackText;
+
+    [Tooltip("Color del texto para las notificaciones de ganancia (verde por defecto).")]
+    [SerializeField] private Color gainColor = Color.green;
+
+    [Tooltip("Color del texto para las notificaciones de pérdidas/penalizaciones (rojo por defecto).")]
+    [SerializeField] private Color lossColor = Color.red;
+
     [Header("HUD — Contenedor")]
     [Tooltip("GameObject padre del HUD (para mostrar/ocultar).")]
     [SerializeField] private GameObject hudContainer;
@@ -98,6 +112,9 @@ public class UIManager : MonoBehaviour
 
     [Tooltip("Botón en MenuBG para ir a ScoreBG.")]
     [SerializeField] private Button viewScoresButton;
+
+    [Tooltip("Botón en MenuBG para salir del juego.")]
+    [SerializeField] private Button quitButton;
 
     [Tooltip("Botón en ScoreBG para volver a MenuBG.")]
     [SerializeField] private Button backToMenuButton;
@@ -167,6 +184,9 @@ public class UIManager : MonoBehaviour
     // ═══════════════════════════════════════════════════════════════════════════
 
     [Header("Audio (opcional)")]
+    [Tooltip("Música de fondo para el menú principal.")]
+    [SerializeField] private AudioClip menuMusic;
+
     [Tooltip("Sonido al recibir puntos.")]
     [SerializeField] private AudioClip scoreUpSound;
 
@@ -207,6 +227,14 @@ public class UIManager : MonoBehaviour
         _audioSource.playOnAwake = false;
     }
 
+    void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+    }
+
     void OnEnable()
     {
         SubscribeToEvents();
@@ -241,11 +269,38 @@ public class UIManager : MonoBehaviour
         // Configurar botones — Menú / Scores toggle
         if (viewScoresButton != null)
             viewScoresButton.onClick.AddListener(OnViewScoresPressed);
+        if (quitButton != null)
+            quitButton.onClick.AddListener(OnQuitButtonPressed);
         if (backToMenuButton != null)
             backToMenuButton.onClick.AddListener(OnBackToMenuPressed);
 
-        // Estado inicial: mostrar pantalla de inicio
-        ShowStartScreen();
+        // Manejar el estado según si venimos de un reload de escena
+        if (shouldStartGameOnLoad)
+        {
+            shouldStartGameOnLoad = false;
+            string playerName = restartPlayerName;
+
+            // Teletransportar al jugador a la zona de juego
+            TeleportPlayer(teleportStartPoint);
+            ShowGameHUD();
+            GameManager.Instance.StartGame(playerName);
+        }
+        else if (shouldShowScoresOnLoad)
+        {
+            shouldShowScoresOnLoad = false;
+            ShowStartScreen();
+
+            // Desactivar startScreen para evitar que se superponga con scoreBG (no deben haber dos interfaces activas)
+            if (startScreen != null) startScreen.SetActive(false);
+            if (menuBG != null) menuBG.SetActive(false);
+            if (scoreBG != null) scoreBG.SetActive(true);
+            TeleportPlayer(teleportMenuPoint);
+        }
+        else
+        {
+            ShowStartScreen();
+            TeleportPlayer(teleportMenuPoint);
+        }
     }
 
     void OnDisable()
@@ -478,6 +533,9 @@ public class UIManager : MonoBehaviour
                 if (card != null) card.ClearOrder();
             }
         }
+
+        // Reproducir música del menú
+        PlayMenuMusic();
     }
 
     /// <summary>Muestra el HUD durante la partida.</summary>
@@ -495,6 +553,9 @@ public class UIManager : MonoBehaviour
 
         _lastCountdownSecond = -1;
         _previousScore = 0;
+
+        // Detener música de menú al iniciar juego
+        StopMenuMusic();
     }
 
     /// <summary>
@@ -590,6 +651,9 @@ public class UIManager : MonoBehaviour
         // Usar el nombre del name entry (los caracteres guardados)
         string playerName = new string(_currentNameChars);
 
+        // Detener la música de menú
+        StopMenuMusic();
+
         // Teletransportar al jugador a la zona de juego
         TeleportPlayer(teleportStartPoint);
 
@@ -604,14 +668,15 @@ public class UIManager : MonoBehaviour
     /// <summary>Callback del botón "Restart rápido" en Game Over.</summary>
     private void OnQuickRestartPressed()
     {
-        // Usar el nombre actual del name entry
-        string playerName = new string(_currentNameChars);
+        // Guardar el nombre actual para volver a empezar con él
+        shouldStartGameOnLoad = true;
+        restartPlayerName = new string(_currentNameChars);
 
-        // Teletransportar al jugador a la zona de juego
-        TeleportPlayer(teleportStartPoint);
+        // Detener la música de menú
+        StopMenuMusic();
 
-        ShowGameHUD();
-        GameManager.Instance.StartGame(playerName);
+        // Recargar la escena actual para reiniciar todo
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     /// <summary>Callback del botón "Guardar" en Game Over (solo si es top 10).</summary>
@@ -623,9 +688,14 @@ public class UIManager : MonoBehaviour
     /// <summary>Callback del botón "Menú" en Game Over.</summary>
     private void OnGameOverMenuPressed()
     {
-        // Teletransportar al jugador al menú (si hay punto asignado)
-        TeleportPlayer(teleportMenuPoint);
-        ShowStartScreen();
+        shouldStartGameOnLoad = false;
+        shouldShowScoresOnLoad = false;
+
+        // Detener la música de menú
+        StopMenuMusic();
+
+        // Recargar la escena actual para reiniciar todo
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -641,23 +711,27 @@ public class UIManager : MonoBehaviour
         if (LeaderboardManager.Instance != null)
             LeaderboardManager.Instance.AddScore(playerName, _pendingScore);
 
-        // Actualizar el leaderboard display
-        RefreshLeaderboardDisplay();
+        shouldStartGameOnLoad = false;
+        shouldShowScoresOnLoad = true;
 
-        // Ir al menú mostrando el ScoreBG (flujo: NameEntry → Score)
-        TeleportPlayer(teleportMenuPoint);
-        ShowStartScreen();
+        // Detener la música de menú
+        StopMenuMusic();
 
-        // Mostrar ScoreBG directamente en vez de MenuBG
-        if (menuBG != null) menuBG.SetActive(false);
-        if (scoreBG != null) scoreBG.SetActive(true);
+        // Recargar la escena actual para reiniciar todo y mostrar scores
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     /// <summary>Callback del botón "Menú" en Name Entry. Descarta y va al menú.</summary>
     private void OnNameMenuPressed()
     {
-        TeleportPlayer(teleportMenuPoint);
-        ShowStartScreen();
+        shouldStartGameOnLoad = false;
+        shouldShowScoresOnLoad = false;
+
+        // Detener la música de menú
+        StopMenuMusic();
+
+        // Recargar la escena actual para reiniciar todo
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -679,18 +753,50 @@ public class UIManager : MonoBehaviour
         if (menuBG != null) menuBG.SetActive(true);
     }
 
+    /// <summary>Cierra la aplicación (o detiene el juego en el Editor).</summary>
+    private void OnQuitButtonPressed()
+    {
+        Debug.Log("[UIManager] Saliendo del juego...");
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     //  API PÚBLICA — Para otros scripts
     // ═══════════════════════════════════════════════════════════════════════════
 
+    private Coroutine _toastCoroutine;
+
     /// <summary>
-    /// Muestra un mensaje temporal en el HUD (para feedback como "¡Tortilla quemada!").
+    /// Muestra un mensaje temporal en la tarjeta general de puntuación en el mundo.
     /// </summary>
-    public void ShowToast(string message, float duration = 2f)
+    public void ShowToast(string message, float duration = 3f, bool isLoss = true)
     {
-        // Implementación simple por ahora vía Debug
-        // TODO: Agregar un texto temporal en el HUD
         Debug.Log($"[UIManager] Toast: {message}");
+
+        if (scoreFeedbackText != null)
+        {
+            scoreFeedbackText.color = isLoss ? lossColor : gainColor;
+
+            if (_toastCoroutine != null)
+                StopCoroutine(_toastCoroutine);
+
+            _toastCoroutine = StartCoroutine(ShowToastCoroutine(message, duration));
+        }
+    }
+
+    private System.Collections.IEnumerator ShowToastCoroutine(string message, float duration)
+    {
+        scoreFeedbackText.text = message;
+        scoreFeedbackText.gameObject.SetActive(true);
+
+        yield return new WaitForSeconds(duration);
+
+        scoreFeedbackText.text = "";
+        _toastCoroutine = null;
     }
 
     /// <summary>
@@ -700,5 +806,53 @@ public class UIManager : MonoBehaviour
     {
         if (GameManager.Instance != null)
             UpdateOrders(GameManager.Instance.ActiveOrders);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  API PÚBLICA — PREVENTIVE DEACTIVATION FOR WORLD STATE CHANGES
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Desactiva preventivamente las pantallas del menú antes de que se active el
+    /// worldInactive, evitando glitches visuales o la ejecución de OnEnable en los menús.
+    /// </summary>
+    public void PrepareForGameOver()
+    {
+        if (startScreen    != null) startScreen.SetActive(false);
+        if (menuBG         != null) menuBG.SetActive(false);
+        if (scoreBG        != null) scoreBG.SetActive(false);
+        if (nameEntryScreen!= null) nameEntryScreen.SetActive(false);
+        if (hudContainer   != null) hudContainer.SetActive(false);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  AUDIO DE MENÚ
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>Reproduce la música del menú en bucle.</summary>
+    private void PlayMenuMusic()
+    {
+        if (menuMusic != null && _audioSource != null)
+        {
+            // Si ya se está reproduciendo el mismo clip, no hacer nada
+            if (_audioSource.clip == menuMusic && _audioSource.isPlaying)
+                return;
+
+            _audioSource.clip = menuMusic;
+            _audioSource.loop = true;
+            _audioSource.Play();
+            Debug.Log("[UIManager] Música de menú iniciada.");
+        }
+    }
+
+    /// <summary>Detiene la música del menú.</summary>
+    private void StopMenuMusic()
+    {
+        if (_audioSource != null && _audioSource.clip == menuMusic)
+        {
+            _audioSource.Stop();
+            _audioSource.clip = null;
+            Debug.Log("[UIManager] Música de menú detenida.");
+        }
     }
 }

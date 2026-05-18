@@ -39,7 +39,7 @@ public class TortillaManager : MonoBehaviour
 
     [Header("Penalización")]
     [Tooltip("Puntos que se restan si la tortilla se quema.")]
-    [SerializeField] private int burnPenalty = 10;
+    [SerializeField] private int burnPenalty = 1;
 
     [Header("Audio (opcional)")]
     [Tooltip("Sonido de cocción (loop).")]

@@ -30,7 +30,14 @@ public class GameManager : MonoBehaviour
             return;
         }
         Instance = this;
-        DontDestroyOnLoad(gameObject);
+    }
+
+    void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -191,6 +198,13 @@ public class GameManager : MonoBehaviour
         if (!_isGameRunning) return;
 
         _isGameRunning = false;
+
+        // Desactivar preventivamente las pantallas del menú antes de que se active el worldInactive
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.PrepareForGameOver();
+        }
+
         SetWorldState(gameRunning: false);
 
         // Liberar el cursor para poder usar menús
@@ -251,6 +265,12 @@ public class GameManager : MonoBehaviour
 
         AddPoints(reward);
 
+        // Mostrar notificación de ganancia en verde en el HUD del mundo
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowToast($"¡Pedido Entregado!: +${reward}", 3f, false);
+        }
+
         if (_isGameRunning) 
         {
             _activeOrders[index] = CreateNewOrder();
@@ -301,6 +321,12 @@ public class GameManager : MonoBehaviour
     {
         SubtractPoints(penalty);
         Debug.Log($"[GameManager] Penalización: {reason} → -{penalty}");
+
+        // Mostrar notificación visual en la interfaz/HUD del jugador
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowToast($"{reason}: -${penalty}");
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
