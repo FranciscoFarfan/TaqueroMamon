@@ -87,29 +87,70 @@ public class DroppableObject : MonoBehaviour
         if (_hasFallen) return;
         _hasFallen = true;
 
-        // Verificar si es un plato para calcular penalización dinámica según cantidad de tacos
+        bool isGameRunning = GameManager.Instance != null && GameManager.Instance.IsGameRunning;
+
+        // ─── Plato caído ───
         PlateSocket plate = GetComponent<PlateSocket>();
         if (plate != null)
         {
-            // 5 pesos si está vacío, +10 pesos por cada taco
-            penaltyPoints = 5 + (plate.TacoCount * 10);
-            penaltyReason = $"Plato caído ({plate.TacoCount} tacos)";
+            int tacoCount = plate.TacoCount;
+            penaltyPoints = 5 + (tacoCount * 10);
+            penaltyReason = $"Plato caído ({tacoCount} tacos)";
+
+            if (isGameRunning)
+                GameManager.Instance.ReportPlateDropped(tacoCount, penaltyPoints, penaltyReason);
+
+            Debug.Log($"[DroppableObject] '{gameObject.name}' (Plato) cayó con {tacoCount} tacos. (-{penaltyPoints})");
+            Destroy(gameObject);
+            return;
         }
 
-        // Verificar si es una tortilla quemada para evitar doble penalización
-        bool shouldPenalize = true;
+        // ─── Tortilla caída ───
         TortillaManager tortilla = GetComponent<TortillaManager>();
-        if (tortilla != null && tortilla.CurrentState == TortillaManager.TortillaState.Burnt)
+        if (tortilla != null)
         {
-            shouldPenalize = false;
+            // Si ya estaba quemada, la penalización ya se aplicó en TortillaManager
+            if (tortilla.CurrentState == TortillaManager.TortillaState.Burnt)
+            {
+                Debug.Log($"[DroppableObject] '{gameObject.name}' (Tortilla quemada) cayó. Sin penalización adicional.");
+            }
+            else
+            {
+                if (isGameRunning)
+                    GameManager.Instance.ReportTortillaLost(penaltyPoints, "Tortilla caída");
+            }
+
+            Destroy(gameObject);
+            return;
         }
 
-        // Solo penalizar si hay partida en curso y no es una tortilla ya quemada
-        if (shouldPenalize && GameManager.Instance != null && GameManager.Instance.IsGameRunning)
+        // ─── Pastor caído ───
+        if (gameObject.CompareTag("Pastor"))
+        {
+            if (isGameRunning)
+                GameManager.Instance.ReportMeatDropped(penaltyPoints, "Pastor caído");
+
+            Debug.Log($"[DroppableObject] '{gameObject.name}' (Pastor) cayó. (-{penaltyPoints})");
+            Destroy(gameObject);
+            return;
+        }
+
+        // ─── Taco caído ───
+        if (gameObject.CompareTag("taco"))
+        {
+            if (isGameRunning)
+                GameManager.Instance.ReportTacosLost(1, penaltyPoints, "Taco caído");
+
+            Debug.Log($"[DroppableObject] '{gameObject.name}' (Taco) cayó. (-{penaltyPoints})");
+            Destroy(gameObject);
+            return;
+        }
+
+        // ─── Genérico (cualquier otro objeto) ───
+        if (isGameRunning)
             GameManager.Instance.ApplyPenalty(penaltyPoints, penaltyReason);
 
-        Debug.Log($"[DroppableObject] '{gameObject.name}' cayó. Penalización aplicada: {shouldPenalize} (-{penaltyPoints})");
-
+        Debug.Log($"[DroppableObject] '{gameObject.name}' cayó. Penalización genérica: (-{penaltyPoints})");
         Destroy(gameObject);
     }
 }

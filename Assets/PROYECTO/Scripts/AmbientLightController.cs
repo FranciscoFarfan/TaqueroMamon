@@ -73,6 +73,29 @@ public class AmbientLightController : MonoBehaviour
     [SerializeField] private Material daySkybox;
 
     // ═══════════════════════════════════════════════════════════════════════════
+    //  INSPECTOR ─ Configuración de NOCHE (fin del juego)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    [Header("─── Ambiente de NOCHE (fin del juego) ───")]
+    [Tooltip("Color de la luz solar/lunar de noche (azul oscuro frío).")]
+    [SerializeField] private Color nightSunColor = new Color(0.2f, 0.25f, 0.45f); // azul oscuro
+
+    [Tooltip("Intensidad de la luz de noche.")]
+    [SerializeField] [Range(0f, 8f)] private float nightSunIntensity = 0.3f;
+
+    [Tooltip("Rotación del sol de noche (X = ángulo bajo, atardecer/noche).")]
+    [SerializeField] private Vector3 nightSunRotation = new Vector3(5f, 170f, 0f); // sol muy bajo, casi oculto
+
+    [Tooltip("Color de la luz ambiental de noche.")]
+    [SerializeField] private Color nightAmbientColor = new Color(0.1f, 0.1f, 0.25f); // azul muy oscuro
+
+    [Tooltip("Intensidad del skybox/ambiente de noche.")]
+    [SerializeField] [Range(0f, 8f)] private float nightAmbientIntensity = 0.2f;
+
+    [Tooltip("(Opcional) Material del Skybox para la noche. Si es null, solo se cambia el color ambiental.")]
+    [SerializeField] private Material nightSkybox;
+
+    // ═══════════════════════════════════════════════════════════════════════════
     //  INSPECTOR ─ Transición
     // ═══════════════════════════════════════════════════════════════════════════
 
@@ -166,14 +189,26 @@ public class AmbientLightController : MonoBehaviour
         Debug.Log("[AmbientLightController] Transicionando a ambiente de MAÑANA.");
     }
 
+    /// <summary>
+    /// Llama a este método cuando el juego TERMINA para transicionar a ambiente NOCTURNO.
+    /// </summary>
+    public void TransitionToNight()
+    {
+        StartTransition(
+            nightSunColor, nightSunIntensity, nightSunRotation,
+            nightAmbientColor, nightAmbientIntensity, nightSkybox
+        );
+        Debug.Log("[AmbientLightController] Transicionando a ambiente de NOCHE.");
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     //  MANEJADORES DE EVENTOS
     // ═══════════════════════════════════════════════════════════════════════════
 
     private void OnGameOverHandler(int finalScore)
     {
-        // Cuando el juego termina, volver a la ambientación de mañana
-        TransitionToMorning();
+        // Cuando el juego termina, la transición a noche la maneja GameManager.EndGameSequence()
+        // ya no se hace aquí para evitar duplicados
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

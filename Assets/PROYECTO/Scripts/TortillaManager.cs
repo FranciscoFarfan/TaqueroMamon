@@ -128,7 +128,7 @@ public class TortillaManager : MonoBehaviour
                 PlayBurntAudio();
 
                 if (GameManager.Instance != null && GameManager.Instance.IsGameRunning)
-                    GameManager.Instance.ApplyPenalty(burnPenalty, "Tortilla quemada");
+                    GameManager.Instance.ReportTortillaLost(burnPenalty, "Tortilla quemada");
 
                 Debug.Log($"[TortillaManager] '{gameObject.name}' se quemó!");
             }
