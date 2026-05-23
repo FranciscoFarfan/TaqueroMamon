@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit;
 using Random = UnityEngine.Random;
 
 /// <summary>
@@ -12,6 +14,8 @@ using Random = UnityEngine.Random;
 ///  - Gestionar el temporizador de 3 minutos.
 ///  - Mantener y exponer la puntuación (dinero).
 ///  - Administrar los 3 pedidos activos simultáneos.
+///  - Llevar estadísticas detalladas de la partida.
+///  - Coordinar transiciones con esperas para animaciones del sol.
 ///  - Guardar el puntaje final en un .txt.
 /// </summary>
 public class GameManager : MonoBehaviour
@@ -54,6 +58,17 @@ public class GameManager : MonoBehaviour
     [Tooltip("(Opcional) Controlador de la iluminación ambiental. Si se asigna, hará la transición mañana↔día automáticamente.")]
     [SerializeField] private AmbientLightController ambientLightController;
 
+    [Header("Manos del jugador")]
+    [Tooltip("XRDirectInteractor de la mano izquierda (para forzar soltar objetos al terminar).")]
+    [SerializeField] private XRDirectInteractor leftHandInteractor;
+
+    [Tooltip("XRDirectInteractor de la mano derecha (para forzar soltar objetos al terminar).")]
+    [SerializeField] private XRDirectInteractor rightHandInteractor;
+
+    [Header("Cuchillo")]
+    [Tooltip("(Opcional) Referencia al GameObject del cuchillo para resetearlo al terminar.")]
+    [SerializeField] private GameObject knifeObject;
+
     // ═══════════════════════════════════════════════════════════════════════════
     //  INSPECTOR ─ Configuración del juego
     // ═══════════════════════════════════════════════════════════════════════════
@@ -64,6 +79,13 @@ public class GameManager : MonoBehaviour
 
     [Tooltip("Número máximo de pedidos activos simultáneos.")]
     [SerializeField] private int maxActiveOrders = 3;
+
+    [Header("Tiempos de espera para animaciones")]
+    [Tooltip("Segundos a esperar al INICIAR para la animación del sol (antes de generar pedidos).")]
+    [SerializeField] private float startAnimationDelay = 3f;
+
+    [Tooltip("Segundos a esperar al TERMINAR para la animación del sol (antes de mostrar Game Over).")]
+    [SerializeField] private float endAnimationDelay = 5f;
 
     [Header("Carnes disponibles")]
     [Tooltip("Lista de tipos de carne que pueden pedirse. Ajústala a tus strings definitivos.")]
@@ -85,14 +107,26 @@ public class GameManager : MonoBehaviour
     private int    _score          = 0;
     private string _playerName     = "AAA";
     private int    _nextOrderId    = 0;
-    
-    private int _tacosDelivered = 0; // Nuevo contador
-    
-    public int TacosDelivered => _tacosDelivered; // Propiedad pública
-    // Evento para notificar cambios en la cantidad de tacos
-    public event Action<int> OnTacosDeliveredChanged;
+
+    // Posición original del cuchillo
+    private Vector3 _knifeInitialPosition;
+    private Quaternion _knifeInitialRotation;
+    private Transform _knifeInitialParent;
 
     private readonly List<TacoOrder> _activeOrders = new List<TacoOrder>();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  ESTADÍSTICAS DE LA PARTIDA
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    private int _tacosDelivered    = 0;
+    private int _ordersCompleted   = 0;
+    private int _tortillasLost     = 0;
+    private int _tacosLost         = 0;
+    private int _meatDropped       = 0;
+    private int _platesDropped     = 0;
+    private int _totalEarned       = 0;
+    private int _totalPenalties    = 0;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  PROPIEDADES PÚBLICAS (para la UI)
@@ -110,8 +144,24 @@ public class GameManager : MonoBehaviour
     /// <summary>Nombre del jugador (3 caracteres).</summary>
     public string PlayerName => _playerName;
 
+    /// <summary>Tiempo que espera el juego para la animación del sol al inicio.</summary>
+    public float StartAnimationDelay => startAnimationDelay;
+
     /// <summary>Lista de pedidos activos (solo lectura para la UI).</summary>
     public IReadOnlyList<TacoOrder> ActiveOrders => _activeOrders.AsReadOnly();
+
+    // --- Estadísticas ---
+    public int TacosDelivered  => _tacosDelivered;
+    public int OrdersCompleted => _ordersCompleted;
+    public int TortillasLost   => _tortillasLost;
+    public int TacosLost       => _tacosLost;
+    public int MeatDropped     => _meatDropped;
+    public int PlatesDropped   => _platesDropped;
+    public int TotalEarned     => _totalEarned;
+    public int TotalPenalties  => _totalPenalties;
+
+    // Evento para notificar cambios en la cantidad de tacos
+    public event Action<int> OnTacosDeliveredChanged;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  EVENTOS (opcionales, para que la UI se suscriba)
@@ -126,6 +176,9 @@ public class GameManager : MonoBehaviour
     /// <summary>Se dispara cuando la partida termina, pasa el score final.</summary>
     public event Action<int> OnGameOver;
 
+    /// <summary>Se dispara cuando termina la animación inicial del sol.</summary>
+    public event Action OnStartAnimationCompleted;
+
     // ═══════════════════════════════════════════════════════════════════════════
     //  UNITY LOOP
     // ═══════════════════════════════════════════════════════════════════════════
@@ -134,6 +187,14 @@ public class GameManager : MonoBehaviour
     {
         // Estado inicial: mostrar mundo cerrado
         SetWorldState(gameRunning: false);
+
+        // Guardar posición original del cuchillo
+        if (knifeObject != null)
+        {
+            _knifeInitialPosition = knifeObject.transform.position;
+            _knifeInitialRotation = knifeObject.transform.rotation;
+            _knifeInitialParent = knifeObject.transform.parent;
+        }
     }
 
     void Update()
@@ -154,7 +215,8 @@ public class GameManager : MonoBehaviour
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// <summary>
-    /// Inicia una nueva partida.
+    /// Inicia una nueva partida. La secuencia espera a que termine la animación
+    /// del sol antes de generar pedidos y activar el temporizador.
     /// </summary>
     /// <param name="playerName">Nombre del jugador (se trunca / rellena a 3 caracteres).</param>
     public void StartGame(string playerName)
@@ -169,22 +231,22 @@ public class GameManager : MonoBehaviour
         _score         = 0;
         _timeRemaining = gameDuration;
         _nextOrderId   = 0;
-        _tacosDelivered = 0; // Resetear al iniciar
-        OnTacosDeliveredChanged?.Invoke(_tacosDelivered);
         _activeOrders.Clear();
+
+        // Resetear estadísticas
+        _tacosDelivered  = 0;
+        _ordersCompleted = 0;
+        _tortillasLost   = 0;
+        _tacosLost       = 0;
+        _meatDropped     = 0;
+        _platesDropped   = 0;
+        _totalEarned     = 0;
+        _totalPenalties  = 0;
+
+        OnTacosDeliveredChanged?.Invoke(_tacosDelivered);
 
         // Cambiar mundo
         SetWorldState(gameRunning: true);
-
-        // Transicionar la iluminación a ambiente de DÍA
-        if (ambientLightController != null)
-            ambientLightController.TransitionToDay();
-
-        // Generar pedidos iniciales
-        for (int i = 0; i < maxActiveOrders; i++)
-            GenerateNewOrder();
-
-        _isGameRunning = true;
 
         // Confinar el cursor dentro de la ventana del juego
         Cursor.lockState = CursorLockMode.Confined;
@@ -194,17 +256,84 @@ public class GameManager : MonoBehaviour
         OnOrdersChanged?.Invoke(ActiveOrders);
 
         Debug.Log($"[GameManager] Partida iniciada — Jugador: {_playerName}");
+
+        // Iniciar secuencia con espera para la animación del sol
+        StartCoroutine(StartGameSequence());
     }
 
     /// <summary>
-    /// Termina la partida (se llama automáticamente al acabar el tiempo).
-    /// También se puede llamar manualmente para forzar fin.
+    /// Secuencia de inicio: transicionar la luz, esperar la animación del sol,
+    /// y luego generar pedidos e iniciar el temporizador.
+    /// </summary>
+    private IEnumerator StartGameSequence()
+    {
+        // Transicionar la iluminación a ambiente de DÍA
+        if (ambientLightController != null)
+            ambientLightController.TransitionToDay();
+
+        // Cambiar audio ambiental a fase de tarde (juego)
+        if (AmbientSoundManager.Instance != null)
+            AmbientSoundManager.Instance.SetAfternoonPhase();
+
+        // Esperar la animación del sol
+        yield return new WaitForSeconds(startAnimationDelay);
+
+        // Notificar que la animación terminó (UIManager puede usar esto para teletransportar)
+        OnStartAnimationCompleted?.Invoke();
+
+        // Esperar 1 segundo extra para dar tiempo al fundido a negro (fade) del teletransporte
+        yield return new WaitForSeconds(1f);
+
+        // Generar pedidos iniciales
+        for (int i = 0; i < maxActiveOrders; i++)
+            GenerateNewOrder();
+
+        OnOrdersChanged?.Invoke(ActiveOrders);
+
+        // AHORA sí empieza el juego
+        _isGameRunning = true;
+
+        Debug.Log($"[GameManager] Animación de inicio completada — ¡El juego comienza!");
+    }
+
+    /// <summary>
+    /// Termina la partida. Espera la animación del sol antes de disparar el evento
+    /// de Game Over para que la UI muestre los resultados.
     /// </summary>
     public void EndGame()
     {
         if (!_isGameRunning) return;
 
         _isGameRunning = false;
+
+        // Forzar que el jugador suelte todo lo que tenga en las manos
+        ForceReleaseHeldObjects();
+
+        // Resetear el cuchillo a su posición original
+        ResetKnife();
+
+        Debug.Log($"[GameManager] Partida terminando — Esperando animación del sol ({endAnimationDelay}s)...");
+
+        // Iniciar secuencia de fin con espera
+        StartCoroutine(EndGameSequence());
+    }
+
+    /// <summary>
+    /// Secuencia de fin: transicionar la luz a noche, esperar la animación,
+    /// y luego mostrar el resultado.
+    /// </summary>
+    private IEnumerator EndGameSequence()
+    {
+        // Transicionar la iluminación a ambiente de NOCHE
+        if (ambientLightController != null)
+            ambientLightController.TransitionToNight();
+
+        // Cambiar audio ambiental a fase de noche
+        if (AmbientSoundManager.Instance != null)
+            AmbientSoundManager.Instance.SetNightPhase();
+
+        // Esperar la animación del sol
+        yield return new WaitForSeconds(endAnimationDelay);
 
         // Desactivar preventivamente las pantallas del menú antes de que se active el worldInactive
         if (UIManager.Instance != null)
@@ -214,20 +343,13 @@ public class GameManager : MonoBehaviour
 
         SetWorldState(gameRunning: false);
 
-        // Transicionar la iluminación de vuelta a ambiente de MAÑANA
-        if (ambientLightController != null)
-            ambientLightController.TransitionToMorning();
-
         // Liberar el cursor para poder usar menús
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        // El guardado de score ahora es opcional vía LeaderboardManager
-        // y se controla desde UIManager (solo si el jugador decide guardar)
-
         OnGameOver?.Invoke(_score);
 
-        Debug.Log($"[GameManager] Partida terminada — Score final: {_score}");
+        Debug.Log($"[GameManager] Partida terminada — Score final: {_score} (Ganado: ${_totalEarned}, Perdido: ${_totalPenalties})");
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -270,9 +392,11 @@ public class GameManager : MonoBehaviour
         TacoOrder order = _activeOrders[index];
         order.Complete();
 
-        // INCREMENTAR CONTADOR DE TACOS
-        _tacosDelivered += order.TacoCount; 
-        OnTacosDeliveredChanged?.Invoke(_tacosDelivered); // Notificar a la UI
+        // INCREMENTAR CONTADORES
+        _tacosDelivered += order.TacoCount;
+        _ordersCompleted++;
+        _totalEarned += reward;
+        OnTacosDeliveredChanged?.Invoke(_tacosDelivered);
 
         AddPoints(reward);
 
@@ -282,7 +406,7 @@ public class GameManager : MonoBehaviour
             UIManager.Instance.ShowToast($"¡Pedido Entregado!: +${reward}", 3f, false);
         }
 
-        if (_isGameRunning) 
+        if (_isGameRunning)
         {
             _activeOrders[index] = CreateNewOrder();
         }
@@ -319,7 +443,77 @@ public class GameManager : MonoBehaviour
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    //  API PÚBLICA ─ Penalizaciones rápidas
+    //  API PÚBLICA ─ Reportes de estadísticas (para DroppableObject, etc.)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>Reporta una tortilla perdida (caída o quemada).</summary>
+    public void ReportTortillaLost(int penalty, string reason = "Tortilla perdida")
+    {
+        _tortillasLost++;
+        _totalPenalties += penalty;
+        SubtractPoints(penalty);
+
+        if (UIManager.Instance != null)
+            UIManager.Instance.ShowToast($"{reason}: -${penalty}");
+
+        Debug.Log($"[GameManager] Stat: Tortilla perdida ({reason}). Total tortillas perdidas: {_tortillasLost}");
+    }
+
+    /// <summary>Reporta tacos perdidos (caídos solos, en plato, o merma).</summary>
+    public void ReportTacosLost(int count, int penalty, string reason = "Taco perdido")
+    {
+        _tacosLost += count;
+        _totalPenalties += penalty;
+        SubtractPoints(penalty);
+
+        if (UIManager.Instance != null)
+            UIManager.Instance.ShowToast($"{reason}: -${penalty}");
+
+        Debug.Log($"[GameManager] Stat: {count} taco(s) perdido(s) ({reason}). Total tacos perdidos: {_tacosLost}");
+    }
+
+    /// <summary>Reporta carne de pastor caída al suelo.</summary>
+    public void ReportMeatDropped(int penalty, string reason = "Pastor caído")
+    {
+        _meatDropped++;
+        _totalPenalties += penalty;
+        SubtractPoints(penalty);
+
+        if (UIManager.Instance != null)
+            UIManager.Instance.ShowToast($"{reason}: -${penalty}");
+
+        Debug.Log($"[GameManager] Stat: Pastor caído. Total pastor caído: {_meatDropped}");
+    }
+
+    /// <summary>Reporta un plato caído (incluyendo los tacos que traía).</summary>
+    public void ReportPlateDropped(int tacosOnPlate, int penalty, string reason = "Plato caído")
+    {
+        _platesDropped++;
+        _tacosLost += tacosOnPlate; // Los tacos en el plato también se pierden
+        _totalPenalties += penalty;
+        SubtractPoints(penalty);
+
+        if (UIManager.Instance != null)
+            UIManager.Instance.ShowToast($"{reason}: -${penalty}");
+
+        Debug.Log($"[GameManager] Stat: Plato caído con {tacosOnPlate} taco(s). Total platos caídos: {_platesDropped}");
+    }
+
+    /// <summary>Reporta tacos de merma (extras en un pedido).</summary>
+    public void ReportWasteTacos(int wasteCount, int penalty)
+    {
+        _tacosLost += wasteCount;
+        _totalPenalties += penalty;
+        SubtractPoints(penalty);
+
+        if (UIManager.Instance != null)
+            UIManager.Instance.ShowToast($"Merma de tacos ({wasteCount}): -${penalty}");
+
+        Debug.Log($"[GameManager] Stat: Merma de {wasteCount} taco(s). Total tacos perdidos: {_tacosLost}");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  API PÚBLICA ─ Penalizaciones rápidas (genérica, para casos no categorizados)
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// <summary>
@@ -330,6 +524,7 @@ public class GameManager : MonoBehaviour
     /// <param name="reason">Motivo (solo para debug).</param>
     public void ApplyPenalty(int penalty, string reason = "Objeto caído")
     {
+        _totalPenalties += penalty;
         SubtractPoints(penalty);
         Debug.Log($"[GameManager] Penalización: {reason} → -{penalty}");
 
@@ -338,6 +533,94 @@ public class GameManager : MonoBehaviour
         {
             UIManager.Instance.ShowToast($"{reason}: -${penalty}");
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  API PÚBLICA ─ Limpieza de objetos de gameplay
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Destruye todos los objetos de gameplay sueltos en la escena
+    /// (tortillas, trozos de pastor, tacos, platos).
+    /// Se usa para reiniciar la partida sin recargar la escena.
+    /// </summary>
+    public void ResetGameplayObjects()
+    {
+        string[] gameplayTags = { "Tortilla", "Pastor", "taco", "Plato" };
+
+        foreach (string tag in gameplayTags)
+        {
+            GameObject[] objects = GameObject.FindGameObjectsWithTag(tag);
+            foreach (GameObject obj in objects)
+            {
+                Destroy(obj);
+            }
+            if (objects.Length > 0)
+                Debug.Log($"[GameManager] Limpieza: {objects.Length} objetos con tag '{tag}' destruidos.");
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PRIVADO ─ Forzar liberación de objetos en las manos
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Fuerza a ambas manos a soltar cualquier objeto que estén sosteniendo.
+    /// Se llama al terminar la partida para que el jugador no se quede con objetos.
+    /// </summary>
+    private void ForceReleaseHeldObjects()
+    {
+        ReleaseInteractor(leftHandInteractor);
+        ReleaseInteractor(rightHandInteractor);
+    }
+
+    private void ReleaseInteractor(XRDirectInteractor interactor)
+    {
+        if (interactor == null) return;
+        if (!interactor.hasSelection) return;
+
+        // Copiar la lista porque SelectExit la modifica
+        var selected = new List<IXRSelectInteractable>(interactor.interactablesSelected);
+        foreach (var interactable in selected)
+        {
+            if (interactor.interactionManager != null)
+            {
+                interactor.interactionManager.SelectExit(interactor, interactable);
+                Debug.Log($"[GameManager] Forzado soltar: {interactable}");
+            }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PRIVADO ─ Cuchillo
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>Resetea el cuchillo a su posición original.</summary>
+    private void ResetKnife()
+    {
+        if (knifeObject == null) return;
+
+        // Desactivar física temporal
+        Rigidbody knifeRb = knifeObject.GetComponent<Rigidbody>();
+        if (knifeRb != null)
+        {
+            knifeRb.velocity = Vector3.zero;
+            knifeRb.angularVelocity = Vector3.zero;
+            knifeRb.isKinematic = true;
+        }
+
+        // Restaurar parent original
+        knifeObject.transform.SetParent(_knifeInitialParent);
+
+        // Restaurar posición y rotación
+        knifeObject.transform.position = _knifeInitialPosition;
+        knifeObject.transform.rotation = _knifeInitialRotation;
+
+        // Reactivar física
+        if (knifeRb != null)
+            knifeRb.isKinematic = false;
+
+        Debug.Log("[GameManager] Cuchillo reseteado a su posición original.");
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

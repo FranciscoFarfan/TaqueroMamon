@@ -1,42 +1,89 @@
 using UnityEngine;
 
+/// <summary>
+/// Reproductor de Radio.
+/// Reproduce canciones aleatorias y, cada X canciones, reproduce un anuncio comercial aleatorio.
+/// </summary>
 public class Radio : MonoBehaviour
 {
+    [Header("Música y Anuncios")]
+    [Tooltip("Lista de canciones a reproducir.")]
     public AudioClip[] songs;
+
+    [Tooltip("Lista de comerciales/anuncios.")]
+    public AudioClip[] ads;
+
+    [Header("Configuración")]
+    [Tooltip("Cantidad de canciones a reproducir consecutivamente antes de meter un comercial.")]
+    public int songsBeforeAd = 2;
 
     private AudioSource audioSource;
     private int currentSongIndex = -1;
     private float lastPlayTime = 0f;
+    private int consecutiveSongsPlayed = 0;
+    private bool isPlayingAd = false;
 
     void Start()
     {
         audioSource = GetComponent<AudioSource>();
-        audioSource.loop = false; // Desactivamos el loop nativo para poder rotar canciones
+        audioSource.loop = false; // Desactivamos el loop nativo para rotar audios libremente
 
-        if (songs.Length > 0)
+        if (songs != null && songs.Length > 0)
         {
-            PlayNextRandomSong();
+            PlayNextAudio();
         }
     }
 
     void Update()
     {
-        // Cuando termina la canción (isPlaying es falso), reproducimos la siguiente.
-        // Usamos lastPlayTime + 1 segundo como margen de seguridad por si Unity 
-        // tarda unos fotogramas en procesar el audio y evitar que salte de golpe.
-        if (songs.Length > 0 && !audioSource.isPlaying && Time.time > lastPlayTime + 1f)
+        // Cuando termina el audio (isPlaying es falso), reproducimos el siguiente.
+        // Usamos lastPlayTime + 1 segundo como margen de seguridad.
+        if (songs != null && songs.Length > 0 && !audioSource.isPlaying && Time.time > lastPlayTime + 1f)
+        {
+            PlayNextAudio();
+        }
+    }
+
+    // Se deja público por si un botón en tu UI lo sigue llamando para saltar canción
+    public void NextSong()
+    {
+        // Si el usuario fuerza "siguiente", detenemos el audio y vamos al siguiente flujo lógico
+        if (audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
+        PlayNextAudio();
+    }
+
+    private void PlayNextAudio()
+    {
+        // Revisar si toca un comercial (y si hay anuncios disponibles)
+        if (!isPlayingAd && consecutiveSongsPlayed >= songsBeforeAd && ads != null && ads.Length > 0)
+        {
+            PlayRandomAd();
+        }
+        else
         {
             PlayNextRandomSong();
         }
     }
 
-    // Se deja vacío por si un botón en tu UI lo sigue llamando
-    public void NextSong()
+    private void PlayRandomAd()
     {
+        isPlayingAd = true;
+        consecutiveSongsPlayed = 0; // Resetear el contador de canciones
+
+        int randomAdIdx = Random.Range(0, ads.Length);
+        audioSource.clip = ads[randomAdIdx];
+        audioSource.Play();
+
+        lastPlayTime = Time.time;
+        Debug.Log($"[Radio] Reproduciendo comercial...");
     }
 
     private void PlayNextRandomSong()
     {
+        isPlayingAd = false;
         int randomIdx = currentSongIndex;
         
         // Evitar repetir canción si hay más de una
@@ -57,7 +104,9 @@ public class Radio : MonoBehaviour
         audioSource.clip = songs[randomIdx];
         audioSource.Play();
         
-        // Registramos en qué momento le dimos "Play" para el margen de seguridad
+        consecutiveSongsPlayed++;
         lastPlayTime = Time.time; 
+        
+        Debug.Log($"[Radio] Reproduciendo canción. (Canciones consecutivas: {consecutiveSongsPlayed})");
     }
 }

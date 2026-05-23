@@ -29,9 +29,12 @@ public class MeatCutter : MonoBehaviour
     [Tooltip("Tiempo de espera entre cortes (segundos) para no spamear trozos.")]
     public float cooldownCorte = 0.5f;
 
-    [Header("Punto de spawn (opcional)")]
-    [Tooltip("Si se deja vacío, el trozo aparece en la posición del contacto con el cuchillo.")]
+    [Header("Punto de spawn")]
+    [Tooltip("Transform opcional para definir el punto de spawn. Si se asigna, se usa su posición.")]
     public Transform puntoDeSpawn;
+
+    [Tooltip("Offset local respecto al trompo para el punto de spawn (se usa si puntoDeSpawn es null). Ajústalo en el Inspector.")]
+    public Vector3 spawnOffset = new Vector3(0f, -0.2f, 0.3f);
 
     [Header("Audio (opcional)")]
     [Tooltip("Sonido al cortar.")]
@@ -74,7 +77,7 @@ public class MeatCutter : MonoBehaviour
 
         ultimoCorte = Time.time;
 
-        // Determinar posición de spawn del trozo
+        // Determinar posición de spawn del trozo — SIEMPRE FIJA
         Vector3 posicionSpawn;
         if (puntoDeSpawn != null)
         {
@@ -82,7 +85,8 @@ public class MeatCutter : MonoBehaviour
         }
         else
         {
-            posicionSpawn = other.ClosestPoint(transform.position);
+            // Usar offset local relativo al trompo (configurable en el Inspector)
+            posicionSpawn = transform.position + transform.TransformDirection(spawnOffset);
         }
 
         // Instanciar el trozo de carne
@@ -142,5 +146,25 @@ public class MeatCutter : MonoBehaviour
         direccion.Normalize();
 
         return direccion;
+    }
+
+    /// <summary>
+    /// Visualiza el punto de spawn en el Editor para facilitar la configuración.
+    /// </summary>
+    private void OnDrawGizmosSelected()
+    {
+        Vector3 spawnPos;
+        if (puntoDeSpawn != null)
+        {
+            spawnPos = puntoDeSpawn.position;
+        }
+        else
+        {
+            spawnPos = transform.position + transform.TransformDirection(spawnOffset);
+        }
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(spawnPos, 0.05f);
+        Gizmos.DrawLine(transform.position, spawnPos);
     }
 }

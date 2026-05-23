@@ -94,7 +94,7 @@ public class DeliveryArea : MonoBehaviour
             // Descontar pérdida por tacos extra o equivocados
             if (minWaste > 0 && GameManager.Instance != null)
             {
-                GameManager.Instance.ApplyPenalty(minWaste * 10, $"Merma de tacos ({minWaste})");
+                GameManager.Instance.ReportWasteTacos(minWaste, minWaste * 10);
             }
             
             bestMatch.DeliverPlate(plate);

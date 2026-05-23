@@ -156,6 +156,22 @@ public class UIManager : MonoBehaviour
     [Tooltip("Botón para ir al menú principal.")]
     [SerializeField] private Button gameOverMenuButton;
 
+    [Header("Estadísticas (Game Over)")]
+    [Tooltip("Texto para mostrar tacos entregados.")]
+    [SerializeField] private TMP_Text statsTacosText;
+    [Tooltip("Texto para mostrar órdenes completadas.")]
+    [SerializeField] private TMP_Text statsOrdersText;
+    [Tooltip("Texto para mostrar tortillas perdidas/quemadas.")]
+    [SerializeField] private TMP_Text statsTortillasText;
+    [Tooltip("Texto para mostrar carne caída.")]
+    [SerializeField] private TMP_Text statsMeatText;
+    [Tooltip("Texto para mostrar tacos caídos o mermados.")]
+    [SerializeField] private TMP_Text statsWasteText;
+    [Tooltip("Texto para mostrar el total ganado antes de penalizaciones.")]
+    [SerializeField] private TMP_Text statsEarnedText;
+    [Tooltip("Texto para mostrar el total restado por penalizaciones.")]
+    [SerializeField] private TMP_Text statsPenaltiesText;
+
     // ═══════════════════════════════════════════════════════════════════════════
     //  INSPECTOR — NAME ENTRY (Canvas WorldSpace separado)
     // ═══════════════════════════════════════════════════════════════════════════
@@ -280,7 +296,8 @@ public class UIManager : MonoBehaviour
             shouldStartGameOnLoad = false;
             string playerName = restartPlayerName;
 
-            // Teletransportar al jugador a la zona de juego
+            // Iniciar directamente. GameManager.StartGame espera, pero dado que es onLoad podemos
+            // teletransportar directamente para que no vean el menú si la escena apenas cargó.
             TeleportPlayer(teleportStartPoint);
             ShowGameHUD();
             GameManager.Instance.StartGame(playerName);
@@ -383,6 +400,7 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnScoreChanged  += UpdateScore;
         GameManager.Instance.OnOrdersChanged += UpdateOrders;
         GameManager.Instance.OnGameOver      += ShowGameOver;
+        GameManager.Instance.OnStartAnimationCompleted += HandleStartAnimationCompleted;
 
         _subscribed = true;
     }
@@ -395,6 +413,7 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnScoreChanged  -= UpdateScore;
         GameManager.Instance.OnOrdersChanged -= UpdateOrders;
         GameManager.Instance.OnGameOver      -= ShowGameOver;
+        GameManager.Instance.OnStartAnimationCompleted -= HandleStartAnimationCompleted;
 
         _subscribed = false;
     }
@@ -470,9 +489,28 @@ public class UIManager : MonoBehaviour
 
     /// <summary>
     /// Teletransporta al jugador (XR Origin) a la posición y rotación
-    /// del Transform de destino indicado.
+    /// del Transform de destino indicado. Usa fundido a negro si está disponible.
     /// </summary>
     private void TeleportPlayer(Transform destination)
+    {
+        if (ScreenFader.Instance != null && gameObject.activeInHierarchy)
+        {
+            StartCoroutine(TeleportWithFade(destination));
+        }
+        else
+        {
+            DoTeleport(destination);
+        }
+    }
+
+    private System.Collections.IEnumerator TeleportWithFade(Transform destination)
+    {
+        yield return ScreenFader.Instance.FadeOut();
+        DoTeleport(destination);
+        yield return ScreenFader.Instance.FadeIn();
+    }
+
+    private void DoTeleport(Transform destination)
     {
         if (xrOrigin == null || destination == null)
         {
@@ -544,8 +582,8 @@ public class UIManager : MonoBehaviour
         if (startScreen    != null) startScreen.SetActive(false);
         if (gameOverScreen != null) gameOverScreen.SetActive(false);
         if (nameEntryScreen!= null) nameEntryScreen.SetActive(false);
-        if (menuBG         != null) menuBG.SetActive(false);          // fix ítem 4: MenuBG no se desactivaba al reiniciar
-        if (scoreBG        != null) scoreBG.SetActive(false);         // fix ítem 4: ScoreBG no se desactivaba al reiniciar
+        if (menuBG         != null) menuBG.SetActive(false);          
+        if (scoreBG        != null) scoreBG.SetActive(false);         
         if (hudContainer   != null) hudContainer.SetActive(true);
 
         // Desactivar rayos de manos (el jugador usa las manos para agarrar objetos)
@@ -571,8 +609,8 @@ public class UIManager : MonoBehaviour
         if (startScreen    != null) startScreen.SetActive(false);
         if (nameEntryScreen!= null) nameEntryScreen.SetActive(false);
         if (hudContainer   != null) hudContainer.SetActive(false);
-        if (menuBG         != null) menuBG.SetActive(false);          // fix ítem 3: menuBG quedaba visible
-        if (scoreBG        != null) scoreBG.SetActive(false);         // fix ítem 3: scoreBG quedaba visible
+        if (menuBG         != null) menuBG.SetActive(false);          
+        if (scoreBG        != null) scoreBG.SetActive(false);
 
         _pendingScore = finalScore;
 
@@ -582,6 +620,19 @@ public class UIManager : MonoBehaviour
         // Mostrar score
         if (finalScoreText != null)
             finalScoreText.text = $"${finalScore}";
+
+        // --- Actualizar Estadísticas ---
+        if (GameManager.Instance != null)
+        {
+            if (statsTacosText != null) statsTacosText.text = GameManager.Instance.TacosDelivered.ToString();
+            if (statsOrdersText != null) statsOrdersText.text = GameManager.Instance.OrdersCompleted.ToString();
+            if (statsTortillasText != null) statsTortillasText.text = GameManager.Instance.TortillasLost.ToString();
+            if (statsMeatText != null) statsMeatText.text = GameManager.Instance.MeatDropped.ToString();
+            if (statsWasteText != null) statsWasteText.text = GameManager.Instance.TacosLost.ToString();
+            if (statsEarnedText != null) statsEarnedText.text = $"${GameManager.Instance.TotalEarned}";
+            if (statsPenaltiesText != null) statsPenaltiesText.text = $"${GameManager.Instance.TotalPenalties}";
+        }
+        // --------------------------------
 
         // Verificar si es top 10
         bool isTopTen = false;
@@ -654,11 +705,21 @@ public class UIManager : MonoBehaviour
         // Detener la música de menú
         StopMenuMusic();
 
-        // Teletransportar al jugador a la zona de juego
-        TeleportPlayer(teleportStartPoint);
+        // Ocultar el menú de inicio temporalmente para que el jugador vea la animación del sol desde fuera
+        if (startScreen != null) startScreen.SetActive(false);
+        if (menuBG != null) menuBG.SetActive(false);
+        SetHandRays(false);
 
-        ShowGameHUD();
+        // Inicia la lógica del GameManager (animación del sol, etc.)
+        // Nos teletransportaremos y mostraremos el HUD cuando GameManager dispare OnStartAnimationCompleted
         GameManager.Instance.StartGame(playerName);
+    }
+
+    /// <summary>Llamado cuando el GameManager termina la animación del sol.</summary>
+    private void HandleStartAnimationCompleted()
+    {
+        TeleportPlayer(teleportStartPoint);
+        ShowGameHUD();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -668,15 +729,27 @@ public class UIManager : MonoBehaviour
     /// <summary>Callback del botón "Restart rápido" en Game Over.</summary>
     private void OnQuickRestartPressed()
     {
-        // Guardar el nombre actual para volver a empezar con él
-        shouldStartGameOnLoad = true;
-        restartPlayerName = new string(_currentNameChars);
-
         // Detener la música de menú
         StopMenuMusic();
 
-        // Recargar la escena actual para reiniciar todo
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        // Limpiar objetos de la partida anterior
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.ResetGameplayObjects();
+        }
+
+        // Ocultar temporalmente la pantalla de Game Over para ver la animación
+        if (gameOverScreen != null) gameOverScreen.SetActive(false);
+        SetHandRays(false);
+
+        // Usar el nombre actual para volver a empezar
+        string playerName = new string(_currentNameChars);
+        
+        // Iniciar el juego directamente (esperará la animación y luego teletransportará)
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.StartGame(playerName);
+        }
     }
 
     /// <summary>Callback del botón "Guardar" en Game Over (solo si es top 10).</summary>
