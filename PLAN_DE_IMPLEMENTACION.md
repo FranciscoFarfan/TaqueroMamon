@@ -5,11 +5,12 @@ Basado en el archivo de `PENDIENTES.md`, he estructurado las tareas en fases ló
 ---
 
 ## 🏃 Fase 1: Ajustes Rápidos y Correcciones Visuales (Quick Wins)
+
 *Estas tareas son independientes y se pueden solucionar rápidamente directamente desde el editor de Unity.*
 
-- [ ] **Agrandar el área de entrega:**
+- [X] **Agrandar el área de entrega:**
   - **Acción:** Seleccionar el prefab/objeto que tiene el script `DeliveryArea.cs` y aumentar el tamaño de su BoxCollider (o el colisionador que utilice) en el eje X/Z.
-- [ ] **Corregir texturas de las plantas:**
+- [X] **Corregir texturas de las plantas:**
   - **Acción:** Revisar el material asignado a los modelos de las plantas, asegurar que el *Shader* sea correcto (por ejemplo, URP Lit o Standard) y que la textura difusa/albedo esté bien asignada.
 - [ ] **Actualizar el Prefab del Plato:**
   - **Acción:** Importar o modificar el modelo 3D para que parezca un plato de plástico (típico de taquería). Asignar materiales con un poco de brillo/smoothness y actualizar el prefab existente (`PlateSocket`).
@@ -19,6 +20,7 @@ Basado en el archivo de `PENDIENTES.md`, he estructurado las tareas en fases ló
 ---
 
 ## 🎮 Fase 2: Flujo del Juego, UI y Estadísticas
+
 *Tareas relacionadas con el inicio y fin de la partida, así como la recolección de datos.*
 
 - [ ] **Instrucciones detalladas de inicio:**
@@ -28,7 +30,7 @@ Basado en el archivo de `PENDIENTES.md`, he estructurado las tareas en fases ló
   - **Inicio:** `yield return new WaitForSeconds(tiempo);` para que la animación del sol termine antes de hacer *spawn* de clientes o soltar al jugador.
   - **Fin:** Misma técnica; esperar a que el sol se oculte antes de mostrar la pantalla final.
 - [ ] **Sistema de Resumen de Partida (End Screen):**
-  - **Acción:** 
+  - **Acción:**
     1. Crear variables en `GameManager.cs` para llevar el conteo de: `tacosEntregados`, `ordenesCompletadas`, `tortillasCaidas`, `tacosCaidos`, `carneCaida` y el puntaje `Total`.
     2. Crear un panel en la UI (Canvas de fin de juego) con textos para estas métricas.
     3. Al terminar el juego, actualizar los textos con estas variables.
@@ -38,6 +40,7 @@ Basado en el archivo de `PENDIENTES.md`, he estructurado las tareas en fases ló
 ---
 
 ## 🌙 Fase 3: Inmersión, Audio y Transiciones (Polish)
+
 *Mejoras significativas en la experiencia del jugador y el entorno.*
 
 - [ ] **Transiciones (Fades) en Teletransporte:**

@@ -2191,8 +2191,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.98, y: 0.41, z: 0.1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 1.5773625, y: 0.41, z: 0.4504496}
+  m_Center: {x: 0.004036188, y: 7.137379e-16, z: 0.17522481}
 --- !u!1 &300215182
 GameObject:
   m_ObjectHideFlags: 0
@@ -6432,6 +6432,12 @@ MonoBehaviour:
   dayAmbientColor: {r: 0.7, g: 0.8, b: 1, a: 1}
   dayAmbientIntensity: 1
   daySkybox: {fileID: 0}
+  nightSunColor: {r: 0.2, g: 0.25, b: 0.45, a: 1}
+  nightSunIntensity: 0.3
+  nightSunRotation: {x: 5, y: 170, z: 0}
+  nightAmbientColor: {r: 0.1, g: 0.1, b: 0.25, a: 1}
+  nightAmbientIntensity: 0.2
+  nightSkybox: {fileID: 0}
   transitionDuration: 3
 --- !u!1 &731999715
 GameObject:
@@ -9052,6 +9058,8 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 558d5cdd93970314cba28f6c8b17787d, type: 3}
   - {fileID: 8300000, guid: 28d9c2bb4027aa6478e181239207f30f, type: 3}
   - {fileID: 8300000, guid: 9dc8a2babb240004e80f8b3045bc132c, type: 3}
+  ads: []
+  songsBeforeAd: 2
 --- !u!82 &1209979188
 AudioSource:
   m_ObjectHideFlags: 0
@@ -11215,6 +11223,13 @@ MonoBehaviour:
   saveScoreButton: {fileID: 976873768}
   quickRestartButton: {fileID: 2058553750}
   gameOverMenuButton: {fileID: 207656215}
+  statsTacosText: {fileID: 0}
+  statsOrdersText: {fileID: 0}
+  statsTortillasText: {fileID: 0}
+  statsMeatText: {fileID: 0}
+  statsWasteText: {fileID: 0}
+  statsEarnedText: {fileID: 0}
+  statsPenaltiesText: {fileID: 0}
   nameEntryScreen: {fileID: 716273199}
   nameChars:
   - {fileID: 1922208386}
@@ -34346,6 +34361,7 @@ MonoBehaviour:
   randomSpread: 0.147
   cooldownCorte: 0.5
   puntoDeSpawn: {fileID: 0}
+  spawnOffset: {x: 0, y: -0.2, z: 0.3}
   cutSound: {fileID: 0}
 --- !u!64 &2818697710140317604
 MeshCollider:
@@ -59088,8 +59104,13 @@ MonoBehaviour:
   worldActive: {fileID: 245662033}
   worldInactive: {fileID: 1825038262}
   ambientLightController: {fileID: 717581158}
+  leftHandInteractor: {fileID: 0}
+  rightHandInteractor: {fileID: 0}
+  knifeObject: {fileID: 0}
   gameDuration: 180
   maxActiveOrders: 3
+  startAnimationDelay: 3
+  endAnimationDelay: 5
   availableMeats:
   - Pastor
   - Bistec
