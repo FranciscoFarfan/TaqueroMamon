@@ -144,6 +144,9 @@ public class GameManager : MonoBehaviour
     /// <summary>Nombre del jugador (3 caracteres).</summary>
     public string PlayerName => _playerName;
 
+    /// <summary>Tiempo que espera el juego para la animación del sol al inicio.</summary>
+    public float StartAnimationDelay => startAnimationDelay;
+
     /// <summary>Lista de pedidos activos (solo lectura para la UI).</summary>
     public IReadOnlyList<TacoOrder> ActiveOrders => _activeOrders.AsReadOnly();
 
@@ -172,6 +175,9 @@ public class GameManager : MonoBehaviour
 
     /// <summary>Se dispara cuando la partida termina, pasa el score final.</summary>
     public event Action<int> OnGameOver;
+
+    /// <summary>Se dispara cuando termina la animación inicial del sol.</summary>
+    public event Action OnStartAnimationCompleted;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  UNITY LOOP
@@ -271,6 +277,12 @@ public class GameManager : MonoBehaviour
 
         // Esperar la animación del sol
         yield return new WaitForSeconds(startAnimationDelay);
+
+        // Notificar que la animación terminó (UIManager puede usar esto para teletransportar)
+        OnStartAnimationCompleted?.Invoke();
+
+        // Esperar 1 segundo extra para dar tiempo al fundido a negro (fade) del teletransporte
+        yield return new WaitForSeconds(1f);
 
         // Generar pedidos iniciales
         for (int i = 0; i < maxActiveOrders; i++)

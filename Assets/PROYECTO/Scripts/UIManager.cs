@@ -296,7 +296,8 @@ public class UIManager : MonoBehaviour
             shouldStartGameOnLoad = false;
             string playerName = restartPlayerName;
 
-            // Teletransportar al jugador a la zona de juego
+            // Iniciar directamente. GameManager.StartGame espera, pero dado que es onLoad podemos
+            // teletransportar directamente para que no vean el menú si la escena apenas cargó.
             TeleportPlayer(teleportStartPoint);
             ShowGameHUD();
             GameManager.Instance.StartGame(playerName);
@@ -399,6 +400,7 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnScoreChanged  += UpdateScore;
         GameManager.Instance.OnOrdersChanged += UpdateOrders;
         GameManager.Instance.OnGameOver      += ShowGameOver;
+        GameManager.Instance.OnStartAnimationCompleted += HandleStartAnimationCompleted;
 
         _subscribed = true;
     }
@@ -411,6 +413,7 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnScoreChanged  -= UpdateScore;
         GameManager.Instance.OnOrdersChanged -= UpdateOrders;
         GameManager.Instance.OnGameOver      -= ShowGameOver;
+        GameManager.Instance.OnStartAnimationCompleted -= HandleStartAnimationCompleted;
 
         _subscribed = false;
     }
@@ -579,8 +582,8 @@ public class UIManager : MonoBehaviour
         if (startScreen    != null) startScreen.SetActive(false);
         if (gameOverScreen != null) gameOverScreen.SetActive(false);
         if (nameEntryScreen!= null) nameEntryScreen.SetActive(false);
-        if (menuBG         != null) menuBG.SetActive(false);          // fix ítem 4: MenuBG no se desactivaba al reiniciar
-        if (scoreBG        != null) scoreBG.SetActive(false);         // fix ítem 4: ScoreBG no se desactivaba al reiniciar
+        if (menuBG         != null) menuBG.SetActive(false);          
+        if (scoreBG        != null) scoreBG.SetActive(false);         
         if (hudContainer   != null) hudContainer.SetActive(true);
 
         // Desactivar rayos de manos (el jugador usa las manos para agarrar objetos)
@@ -606,8 +609,8 @@ public class UIManager : MonoBehaviour
         if (startScreen    != null) startScreen.SetActive(false);
         if (nameEntryScreen!= null) nameEntryScreen.SetActive(false);
         if (hudContainer   != null) hudContainer.SetActive(false);
-        if (menuBG         != null) menuBG.SetActive(false);          // fix ítem 3: menuBG quedaba visible
-        if (scoreBG        != null) scoreBG.SetActive(false);         // fix ítem 3: scoreBG quedaba visible
+        if (menuBG         != null) menuBG.SetActive(false);          
+        if (scoreBG        != null) scoreBG.SetActive(false);
 
         _pendingScore = finalScore;
 
@@ -702,11 +705,21 @@ public class UIManager : MonoBehaviour
         // Detener la música de menú
         StopMenuMusic();
 
-        // Teletransportar al jugador a la zona de juego
-        TeleportPlayer(teleportStartPoint);
+        // Ocultar el menú de inicio temporalmente para que el jugador vea la animación del sol desde fuera
+        if (startScreen != null) startScreen.SetActive(false);
+        if (menuBG != null) menuBG.SetActive(false);
+        SetHandRays(false);
 
-        ShowGameHUD();
+        // Inicia la lógica del GameManager (animación del sol, etc.)
+        // Nos teletransportaremos y mostraremos el HUD cuando GameManager dispare OnStartAnimationCompleted
         GameManager.Instance.StartGame(playerName);
+    }
+
+    /// <summary>Llamado cuando el GameManager termina la animación del sol.</summary>
+    private void HandleStartAnimationCompleted()
+    {
+        TeleportPlayer(teleportStartPoint);
+        ShowGameHUD();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -725,16 +738,14 @@ public class UIManager : MonoBehaviour
             GameManager.Instance.ResetGameplayObjects();
         }
 
-        // Teletransportar al jugador a la zona de juego
-        TeleportPlayer(teleportStartPoint);
-
-        // Mostrar HUD
-        ShowGameHUD();
+        // Ocultar temporalmente la pantalla de Game Over para ver la animación
+        if (gameOverScreen != null) gameOverScreen.SetActive(false);
+        SetHandRays(false);
 
         // Usar el nombre actual para volver a empezar
         string playerName = new string(_currentNameChars);
         
-        // Iniciar el juego directamente
+        // Iniciar el juego directamente (esperará la animación y luego teletransportará)
         if (GameManager.Instance != null)
         {
             GameManager.Instance.StartGame(playerName);
