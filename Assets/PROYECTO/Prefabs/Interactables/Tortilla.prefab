@@ -331,7 +331,7 @@ MonoBehaviour:
   cookedMaterial: {fileID: 2100000, guid: ddc8867cf0adb91439f5b60437440a59, type: 2}
   burntMaterial: {fileID: 2100000, guid: 3aae4058ba6afa945ac240642a49e272, type: 2}
   burnPenalty: 10
-  cookingSound: {fileID: 0}
+  cookingSound: {fileID: 8300000, guid: 338e3421e2f551970a7a8300a020233e, type: 3}
   burntSound: {fileID: 0}
 --- !u!114 &7836300011295399234
 MonoBehaviour:
@@ -350,8 +350,8 @@ MonoBehaviour:
   tacoQuesoPrefab: {fileID: 6660559290384306951, guid: d008bfb45a984bb48a6fbe6b0106f051, type: 3}
   tacoGenericPrefab: {fileID: 9222130124112495094, guid: c161e2f6c8846bd47a89b814a68276e3, type: 3}
   pastorTag: Pastor
-  assembleSound: {fileID: 0}
-  meatCatchSound: {fileID: 0}
+  assembleSound: {fileID: 8300000, guid: 8aa7ab48133a0391080c42810ff591fc, type: 3}
+  meatCatchSound: {fileID: 8300000, guid: 8aa7ab48133a0391080c42810ff591fc, type: 3}
 --- !u!114 &7407523725006490265
 MonoBehaviour:
   m_ObjectHideFlags: 0

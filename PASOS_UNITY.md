@@ -19,10 +19,10 @@
 
 ## 3. 🍽️ Actualizar el Prefab del Plato
 
-- [ ] Importa tu nuevo modelo 3D del plato de plástico.
-- [ ] Abre el prefab original `PlateSocket` (o reemplázalo cuidando no borrar los scripts).
-- [ ] Asegúrate de que el material del nuevo plato tenga un poco de **Smoothness** (brillo) para que parezca plástico (si usas URP Lit, súbele el Smoothness a 0.5-0.7).
-- [ ] **Muy importante:** Asegúrate de que el componente `PlateSocket.cs` siga en el prefab y de volver a asignar (si los borraste) los **puntos de Snap** (`TacoSnapPoints`) para que los tacos sepan dónde acomodarse visualmente.
+- [X] Importa tu nuevo modelo 3D del plato de plástico.
+- [X] Abre el prefab original `PlateSocket` (o reemplázalo cuidando no borrar los scripts).
+- [X] Asegúrate de que el material del nuevo plato tenga un poco de **Smoothness** (brillo) para que parezca plástico (si usas URP Lit, súbele el Smoothness a 0.5-0.7).
+- [X] **Muy importante:** Asegúrate de que el componente `PlateSocket.cs` siga en el prefab y de volver a asignar (si los borraste) los **puntos de Snap** (`TacoSnapPoints`) para que los tacos sepan dónde acomodarse visualmente.
 
 ## 4. 🎛️ Configurar Audio Ambiental (`AmbientSoundManager.cs`)
 
@@ -72,10 +72,13 @@
 
 ## 9. 📻 Configurar los Comerciales en la Radio
 
-- [ ] Selecciona el objeto de tu **Radio** en la escena o prefab (el que tiene el script `Radio.cs`).
-- [ ] En el Inspector verás una nueva lista llamada **`Ads`** justo debajo de las canciones.
-- [ ] Arrastra ahí tus audios de comerciales/anuncios.
-- [ ] Por defecto, el campo `Songs Before Ad` está en **2**. Esto significa que sonarán 2 canciones, luego 1 comercial, luego 2 canciones, etc. Si luego decides que sea cada 3 canciones, ¡solo le cambias el número ahí mismo!
+Selecciona el objeto de tu **Radio** en la escena o prefab (el que tiene el script `Radio.cs`).
+
+En el Inspector verás una nueva lista llamada **`Ads`** justo debajo de las canciones.
+
+Arrastra ahí tus audios de comerciales/anuncios.
+
+Por defecto, el campo `Songs Before Ad` está en **2**. Esto significa que sonarán 2 canciones, luego 1 comercial, luego 2 canciones, etc. Si luego decides que sea cada 3 canciones, ¡solo le cambias el número ahí mismo!
 
 ## 10. 🔪 Configurar el reinicio del Cuchillo (al terminar juego)
 

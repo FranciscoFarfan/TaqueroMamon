@@ -11851,9 +11851,9 @@ MonoBehaviour:
   nameOkButton: {fileID: 658639075}
   nameMenuButton: {fileID: 86093413}
   menuMusic: {fileID: 8300000, guid: 5e79cd13e1a23f940a9dd53d2a5d2998, type: 3}
-  scoreUpSound: {fileID: 0}
-  gameOverSound: {fileID: 0}
-  countdownTickSound: {fileID: 0}
+  scoreUpSound: {fileID: 8300000, guid: 67230d6af9b4d1dae929f3ccff4d2800, type: 3}
+  gameOverSound: {fileID: 8300000, guid: b5a919ae1a33a23af8bc1af4381582ec, type: 3}
+  countdownTickSound: {fileID: 8300000, guid: 339aa09ba27bbfd8c8712fb72fc448e4, type: 3}
 --- !u!114 &1483760789
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16060,7 +16060,7 @@ MonoBehaviour:
   spawnPoint: {fileID: 0}
   maxPlatos: 6
   platoTag: Plato
-  spawnRotationX: 90
+  spawnRotationX: 0
   detectionRadius: 0.1
 --- !u!1 &2054569466
 GameObject:
@@ -34658,7 +34658,7 @@ MonoBehaviour:
   cooldownCorte: 0.5
   puntoDeSpawn: {fileID: 0}
   spawnOffset: {x: 0, y: -0.2, z: 0.3}
-  cutSound: {fileID: 0}
+  cutSound: {fileID: 8300000, guid: d7eb47e0a2a6cfe3c8ca7404fc73b96a, type: 3}
 --- !u!64 &2818697710140317604
 MeshCollider:
   m_ObjectHideFlags: 0
