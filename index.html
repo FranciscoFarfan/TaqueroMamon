@@ -1,0 +1,2643 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Taquero Mamón VR — ¡El Simulador de Tacos Definitivo en Realidad Virtual!</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Siente el calor del comal, rebana el pastor directamente del trompo y sirve a los clientes más hambrientos de la CDMX en Taquero Mamón VR. El juego de simulación más mexicano para Meta Quest y SteamVR.">
+  <meta name="keywords" content="Taquero Mamon VR, juego VR, taco simulator, realidad virtual, meta quest, steamvr, trompo pastor, comal, simulador mexicano, indie game">
+  <meta name="author" content="Francisco Farfán">
+  <link rel="icon" type="image/png" href="taquero_mamon_promo.png">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Taquero Mamón VR — ¡El Simulador de Tacos en Realidad Virtual!">
+  <meta property="og:description" content="¿Tienes lo necesario para ser el Taquero definitivo? Siente la presión, rebana la carne y no quemes las tortillas. ¡Juega ya!">
+  <meta property="og:image" content="taquero_mamon_promo.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="Taquero Mamón VR — ¡El Simulador de Tacos en VR!">
+  <meta property="twitter:description" content="Prepara tacos al pastor con físicas reales en VR. Siente el calor de la plancha en Meta Quest y Oculus.">
+  <meta property="twitter:image" content="taquero_mamon_promo.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* CSS RESET & VARIABLES */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-dark: #07070a;
+      --bg-panel: rgba(18, 18, 24, 0.75);
+      --primary-neon: #ff007f;
+      --primary-glow: rgba(255, 0, 127, 0.4);
+      --secondary-neon: #39ff14;
+      --secondary-glow: rgba(57, 255, 20, 0.4);
+      --accent-neon: #ff6600;
+      --accent-glow: rgba(255, 102, 0, 0.4);
+      --cyan-neon: #00f0ff;
+      --cyan-glow: rgba(0, 240, 255, 0.4);
+      
+      --text-light: #f3f4f6;
+      --text-muted: #9ca3af;
+      --border-light: rgba(255, 255, 255, 0.08);
+      
+      --font-header: 'Lilita One', cursive;
+      --font-body: 'Outfit', sans-serif;
+      
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+    }
+
+    /* CUSTOM SCROLLBAR */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #27272a;
+      border-radius: 5px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-neon);
+    }
+
+    /* CORE UTILITIES */
+    .glow-text-pink {
+      text-shadow: 0 0 10px var(--primary-glow), 0 0 20px rgba(255, 0, 127, 0.2);
+    }
+    .glow-text-green {
+      text-shadow: 0 0 10px var(--secondary-glow), 0 0 20px rgba(57, 255, 20, 0.2);
+    }
+    .glow-text-orange {
+      text-shadow: 0 0 10px var(--accent-glow), 0 0 20px rgba(255, 102, 0, 0.2);
+    }
+
+    .neon-border-pink {
+      border: 1px solid var(--primary-neon);
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+    .neon-border-green {
+      border: 1px solid var(--secondary-neon);
+      box-shadow: 0 0 15px var(--secondary-glow);
+    }
+
+    /* FLOATING DECORATIONS */
+    .floating-elements {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .floating-item {
+      position: absolute;
+      opacity: 0.15;
+      animation: floatAround 25s infinite linear;
+    }
+
+    @keyframes floatAround {
+      0% {
+        transform: translateY(110vh) rotate(0deg) scale(0.8);
+      }
+      100% {
+        transform: translateY(-20vh) rotate(360deg) scale(1.2);
+      }
+    }
+
+    /* GRID BACKGROUND BACKGROUND */
+    .grid-bg {
+      position: fixed;
+      width: 100vw;
+      height: 100vh;
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: 50px 50px;
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    .vignette {
+      position: fixed;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle, transparent 40%, rgba(5, 5, 7, 0.95) 100%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* CONTAINER */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* NAVBAR */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+      background: rgba(7, 7, 10, 0.7);
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .nav-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 80px;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      font-size: 2rem;
+      animation: wiggle 3s infinite ease-in-out;
+    }
+
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(-5deg); }
+      50% { transform: rotate(10deg); }
+    }
+
+    .logo-text {
+      font-family: var(--font-header);
+      font-size: 1.8rem;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, var(--primary-neon), var(--accent-neon));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    nav ul {
+      display: flex;
+      list-style: none;
+      gap: 32px;
+    }
+
+    nav a {
+      color: var(--text-light);
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: var(--transition-smooth);
+      position: relative;
+    }
+
+    nav a::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -6px;
+      left: 0;
+      background-color: var(--primary-neon);
+      transition: var(--transition-smooth);
+      box-shadow: 0 0 8px var(--primary-neon);
+    }
+
+    nav a:hover {
+      color: var(--primary-neon);
+    }
+
+    nav a:hover::after {
+      width: 100%;
+    }
+
+    /* HERO SECTION */
+    #hero {
+      position: relative;
+      padding-top: 160px;
+      padding-bottom: 100px;
+      display: flex;
+      align-items: center;
+      min-height: 95vh;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .hero-content {
+      z-index: 10;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: rgba(255, 0, 127, 0.1);
+      border: 1px solid rgba(255, 0, 127, 0.3);
+      border-radius: 9999px;
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--primary-neon);
+      margin-bottom: 24px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      animation: pulseGlow 2s infinite alternate;
+    }
+
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 4px rgba(255, 0, 127, 0.1); border-color: rgba(255, 0, 127, 0.3); }
+      100% { box-shadow: 0 0 12px rgba(255, 0, 127, 0.4); border-color: var(--primary-neon); }
+    }
+
+    .hero-content h1 {
+      font-family: var(--font-header);
+      font-size: clamp(3.5rem, 8vw, 5.5rem);
+      line-height: 1.05;
+      margin-bottom: 20px;
+      letter-spacing: -1px;
+    }
+
+    .hero-content h1 span {
+      background: linear-gradient(135deg, var(--secondary-neon), var(--cyan-neon));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: block;
+    }
+
+    .hero-description {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 40px;
+      max-width: 600px;
+    }
+
+    .cta-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 16px 36px;
+      font-family: var(--font-body);
+      font-size: 1.1rem;
+      font-weight: 800;
+      text-decoration: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-neon), #d1005f);
+      color: white;
+      box-shadow: 0 0 25px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 0 35px var(--primary-neon);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-light);
+      border: 1px solid var(--border-light);
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-4px);
+    }
+
+    /* ARTWORK CONTAINER */
+    .hero-artwork {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 5;
+    }
+
+    .artwork-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 450px;
+      aspect-ratio: 4 / 5;
+      border-radius: 24px;
+      padding: 8px;
+      background: linear-gradient(135deg, var(--primary-neon), var(--accent-neon), var(--secondary-neon));
+      box-shadow: 0 0 40px rgba(255, 0, 127, 0.25);
+      animation: rotateArtBorder 10s infinite linear;
+      overflow: hidden;
+    }
+
+    .artwork-inner {
+      background-color: var(--bg-dark);
+      width: 100%;
+      height: 100%;
+      border-radius: 18px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .artwork-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.8s ease;
+    }
+
+    .artwork-wrapper:hover .artwork-img {
+      transform: scale(1.05);
+    }
+
+    .neon-corner-glow {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      filter: blur(50px);
+      z-index: -1;
+      opacity: 0.6;
+    }
+
+    .glow-1 {
+      top: -20px;
+      left: -20px;
+      background-color: var(--primary-neon);
+    }
+
+    .glow-2 {
+      bottom: -20px;
+      right: -20px;
+      background-color: var(--secondary-neon);
+    }
+
+    /* SECTION TITLE */
+    .section-title {
+      text-align: center;
+      margin-bottom: 60px;
+      position: relative;
+    }
+
+    .section-title h2 {
+      font-family: var(--font-header);
+      font-size: clamp(2.5rem, 5vw, 3.8rem);
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+
+    .section-title p {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* SECTION STYLES */
+    section {
+      padding: 100px 0;
+      position: relative;
+    }
+
+    /* FEATURES GRID */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+    }
+
+    .feature-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      padding: 40px 30px;
+      transition: var(--transition-smooth);
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 60%);
+      pointer-events: none;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .feature-card.pink-hover:hover {
+      box-shadow: 0 10px 30px rgba(255, 0, 127, 0.15);
+      border-color: var(--primary-neon);
+    }
+
+    .feature-card.green-hover:hover {
+      box-shadow: 0 10px 30px rgba(57, 255, 20, 0.15);
+      border-color: var(--secondary-neon);
+    }
+
+    .feature-card.orange-hover:hover {
+      box-shadow: 0 10px 30px rgba(255, 102, 0, 0.15);
+      border-color: var(--accent-neon);
+    }
+
+    .feature-icon-wrapper {
+      width: 60px;
+      height: 60px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .pink-icon {
+      background: rgba(255, 0, 127, 0.15);
+      border: 1px solid rgba(255, 0, 127, 0.3);
+      color: var(--primary-neon);
+    }
+
+    .green-icon {
+      background: rgba(57, 255, 20, 0.15);
+      border: 1px solid rgba(57, 255, 20, 0.3);
+      color: var(--secondary-neon);
+    }
+
+    .orange-icon {
+      background: rgba(255, 102, 0, 0.15);
+      border: 1px solid rgba(255, 102, 0, 0.3);
+      color: var(--accent-neon);
+    }
+
+    .feature-card h3 {
+      font-family: var(--font-header);
+      font-size: 1.5rem;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .feature-card p {
+      color: var(--text-muted);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    /* INTERACTIVE SIMULATOR SECTION */
+    #simulator {
+      background: radial-gradient(circle at center, rgba(18, 18, 24, 0.4) 0%, var(--bg-dark) 100%);
+    }
+
+    .sim-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-light);
+      border-radius: 28px;
+      padding: 40px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(15px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* SIMULATOR INNER GRID */
+    .sim-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr 1fr;
+      gap: 30px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .sim-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .sim-column {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .sim-block-title {
+      font-family: var(--font-header);
+      font-size: 1.3rem;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* COMAL CARD */
+    .comal-station {
+      background: rgba(10, 10, 12, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 24px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .comal-griddle {
+      background: radial-gradient(circle, #27272a 30%, #18181b 90%);
+      border: 8px solid #09090b;
+      box-shadow: inset 0 0 20px black, 0 10px 20px rgba(0,0,0,0.5);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      padding: 20px;
+      gap: 15px;
+      align-items: center;
+      justify-items: center;
+      position: relative;
+    }
+
+    .comal-griddle::before {
+      content: '';
+      position: absolute;
+      width: 90%;
+      height: 90%;
+      border-radius: 50%;
+      border: 1px dashed rgba(255, 102, 0, 0.15);
+      pointer-events: none;
+      top: 5%;
+      left: 5%;
+    }
+
+    .comal-slot {
+      width: 100%;
+      height: 100%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.3);
+      border: 2px dashed rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: var(--transition-smooth);
+    }
+
+    .comal-slot:hover {
+      background: rgba(255, 102, 0, 0.05);
+      border-color: var(--accent-neon);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    /* TORTILLA WEB OBJECT */
+    .tortilla {
+      width: 85%;
+      height: 85%;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fef3c7 40%, #fcd34d 100%);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+      position: relative;
+      transition: background 1s ease, box-shadow 0.3s ease;
+      overflow: hidden;
+    }
+
+    .tortilla::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background-image: 
+        radial-gradient(circle, rgba(139, 92, 26, 0.15) 2px, transparent 3px),
+        radial-gradient(circle, rgba(139, 92, 26, 0.1) 4px, transparent 6px);
+      background-size: 15px 15px, 20px 20px;
+      background-position: 5px 5px, 12px 12px;
+      opacity: 0.7;
+    }
+
+    /* Tortilla States */
+    .tortilla.raw {
+      background: radial-gradient(circle, #fffbeb 50%, #fef3c7 100%);
+      filter: saturate(0.85);
+    }
+
+    .tortilla.cooking {
+      background: radial-gradient(circle, #fef3c7 30%, #fcd34d 85%, #f59e0b 100%);
+      animation: tortillaSizzle 0.5s infinite alternate;
+    }
+
+    .tortilla.cooked {
+      background: radial-gradient(circle, #fcd34d 20%, #f59e0b 60%, #b45309 100%);
+      box-shadow: 0 0 12px var(--accent-glow), 0 4px 8px rgba(0,0,0,0.4);
+    }
+
+    .tortilla.cooked::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(circle, #6f3400 3px, transparent 4px),
+        radial-gradient(circle, #78350f 2px, transparent 3px);
+      background-size: 25px 25px, 18px 18px;
+      background-position: 2px 5px, 10px 14px;
+      opacity: 0.9;
+    }
+
+    .tortilla.burnt {
+      background: radial-gradient(circle, #4b5563 15%, #1f2937 50%, #030712 100%);
+      box-shadow: 0 0 5px rgba(0,0,0,0.8);
+      filter: grayscale(1);
+    }
+
+    .tortilla.burnt::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(circle, #000 6px, transparent 8px),
+        radial-gradient(circle, #111827 4px, transparent 5px);
+      background-size: 20px 20px, 15px 15px;
+      opacity: 1;
+    }
+
+    @keyframes tortillaSizzle {
+      0% { transform: scale(1) translate(0, 0); }
+      100% { transform: scale(1.02) translate(0.5px, -0.5px); }
+    }
+
+    .sizzle-steam {
+      position: absolute;
+      top: -30px;
+      font-size: 1.5rem;
+      opacity: 0;
+      pointer-events: none;
+      animation: steamFloat 2s infinite ease-out;
+    }
+
+    @keyframes steamFloat {
+      0% { transform: translateY(10px) scale(0.6); opacity: 0; }
+      30% { opacity: 0.4; }
+      100% { transform: translateY(-40px) scale(1.4); opacity: 0; filter: blur(2px); }
+    }
+
+    /* MEAT STATION */
+    .meat-station {
+      background: rgba(10, 10, 12, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .meat-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .meat-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 12px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition-smooth);
+      font-family: var(--font-body);
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .meat-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .meat-btn.active {
+      background: rgba(255, 0, 127, 0.12);
+      border-color: var(--primary-neon);
+      color: var(--text-light);
+      box-shadow: 0 0 12px rgba(255, 0, 127, 0.2);
+    }
+
+    .meat-btn-img {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+    }
+
+    /* TROMPO DE PASTOR CONTAINER */
+    .trompo-container {
+      background: radial-gradient(circle, #2d161a 10%, #15080b 90%);
+      border: 1px solid rgba(255, 0, 127, 0.15);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+      height: 170px;
+    }
+
+    .trompo-svg {
+      width: 90px;
+      height: 130px;
+      transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .trompo-container:hover .trompo-svg {
+      transform: rotate(5deg) scale(1.05);
+    }
+
+    .trompo-container.slicing .trompo-svg {
+      animation: trompoSpin 0.3s ease-out;
+    }
+
+    @keyframes trompoSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .slice-effect {
+      position: absolute;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, transparent, white, transparent);
+      box-shadow: 0 0 8px white;
+      transform: rotate(-15deg) translateY(-20px);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .trompo-container.slicing .slice-effect {
+      animation: slashEffect 0.3s ease-out;
+    }
+
+    @keyframes slashEffect {
+      0% { opacity: 0; transform: rotate(-15deg) translate(-100px, -20px); }
+      50% { opacity: 1; }
+      100% { opacity: 0; transform: rotate(-15deg) translate(100px, 20px); }
+    }
+
+    /* ASSEMBLY BOARD (CENTER) */
+    .assembly-station {
+      background: rgba(10, 10, 12, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      flex-grow: 1;
+    }
+
+    .taco-table {
+      background: radial-gradient(ellipse at center, #27272a 0%, #09090b 100%);
+      border: 2px solid rgba(255,255,255,0.05);
+      width: 100%;
+      aspect-ratio: 1.35;
+      border-radius: 20px;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 8px 16px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .taco-table::after {
+      content: 'TABLA DE PREPARACIÓN';
+      position: absolute;
+      bottom: 12px;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.15);
+      font-weight: 800;
+    }
+
+    /* BIG PREP TACO BUILDER VIEW */
+    .prep-taco {
+      width: 65%;
+      height: 65%;
+      position: relative;
+      transition: var(--transition-smooth);
+    }
+
+    .prep-taco-tortilla {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fcd34d 40%, #d97706 100%);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.5);
+      position: absolute;
+      transform: scale(0.9);
+      transition: var(--transition-smooth);
+    }
+
+    .prep-taco.raw .prep-taco-tortilla {
+      background: radial-gradient(circle, #fffbeb 50%, #fef3c7 100%);
+    }
+
+    .prep-taco.cooked .prep-taco-tortilla {
+      background: radial-gradient(circle, #fcd34d 20%, #f59e0b 60%, #b45309 100%);
+    }
+
+    .prep-taco.burnt .prep-taco-tortilla {
+      background: radial-gradient(circle, #4b5563 15%, #1f2937 50%, #030712 100%);
+    }
+
+    /* Taco Meat Topping Graphics */
+    .topping-meat-pastor,
+    .topping-meat-bistec,
+    .topping-meat-queso {
+      position: absolute;
+      width: 80%;
+      height: 80%;
+      top: 10%;
+      left: 10%;
+      opacity: 0;
+      transition: var(--transition-smooth);
+      pointer-events: none;
+    }
+
+    .topping-meat-pastor {
+      background-image: 
+        radial-gradient(circle, #ea580c 4px, transparent 6px),
+        radial-gradient(circle, #9a3412 6px, transparent 8px),
+        radial-gradient(circle, #ea580c 3px, transparent 5px);
+      background-size: 20px 20px, 24px 24px, 15px 15px;
+      background-position: 20% 40%, 55% 45%, 40% 60%;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    }
+
+    .topping-meat-bistec {
+      background-image: 
+        radial-gradient(circle, #451a03 5px, transparent 7px),
+        radial-gradient(circle, #78350f 4px, transparent 6px);
+      background-size: 22px 22px, 18px 18px;
+      background-position: 45% 35%, 35% 55%;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    }
+
+    .topping-meat-queso {
+      background: rgba(253, 224, 71, 0.85);
+      clip-path: polygon(20% 30%, 40% 25%, 70% 35%, 80% 50%, 65% 75%, 40% 80%, 25% 65%);
+      filter: blur(2px) drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    }
+
+    .prep-taco.has-pastor .topping-meat-pastor { opacity: 1; }
+    .prep-taco.has-bistec .topping-meat-bistec { opacity: 1; }
+    .prep-taco.has-queso .topping-meat-queso { opacity: 1; }
+
+    /* Other Toppings Layer */
+    .topping-cebolla,
+    .topping-cilantro,
+    .topping-limon,
+    .topping-salsa {
+      position: absolute;
+      width: 75%;
+      height: 75%;
+      top: 12.5%;
+      left: 12.5%;
+      opacity: 0;
+      transition: var(--transition-smooth);
+      pointer-events: none;
+    }
+
+    .topping-cebolla {
+      background-image: 
+        linear-gradient(45deg, #f4f4f5 4px, transparent 4px),
+        linear-gradient(-45deg, #e4e4e7 4px, transparent 4px);
+      background-size: 12px 12px;
+      background-position: 30% 30%, 55% 60%, 40% 45%, 65% 35%;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+    }
+
+    .topping-cilantro {
+      background-image: 
+        radial-gradient(circle, #15803d 4px, transparent 6px),
+        radial-gradient(circle, #166534 3px, transparent 5px);
+      background-size: 16px 16px;
+      background-position: 25% 45%, 45% 55%, 60% 40%, 35% 30%;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+    }
+
+    .topping-limon {
+      background-image: radial-gradient(circle, rgba(163, 230, 53, 0.4) 60%, transparent 100%);
+      background-size: 40px 40px;
+      background-position: center;
+      filter: blur(1px);
+    }
+
+    .topping-salsa {
+      background-image: 
+        radial-gradient(circle, #dc2626 8px, transparent 12px),
+        radial-gradient(circle, #991b1b 5px, transparent 8px);
+      background-size: 30px 30px, 20px 20px;
+      background-position: 48% 48%, 35% 55%;
+      filter: blur(0.5px) drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+    }
+
+    .prep-taco.has-cebolla .topping-cebolla { opacity: 1; }
+    .prep-taco.has-cilantro .topping-cilantro { opacity: 1; }
+    .prep-taco.has-limon .topping-limon { opacity: 1; }
+    .prep-taco.has-salsa .topping-salsa { opacity: 1; }
+
+    /* HUD INFOBAR */
+    .hud-infobar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+    }
+
+    .hud-box {
+      flex: 1;
+      background: rgba(10, 10, 12, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .hud-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      margin-bottom: 2px;
+    }
+
+    .hud-val {
+      font-family: var(--font-header);
+      font-size: 1.4rem;
+      letter-spacing: 0.5px;
+    }
+
+    .hud-score-val { color: var(--secondary-neon); }
+    .hud-timer-val { color: var(--cyan-neon); }
+
+    /* ACTION PANEL (RIGHT) */
+    .action-station {
+      background: rgba(10, 10, 12, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex-grow: 1;
+    }
+
+    /* CUSTOMER CARTOON CARD */
+    .customer-card {
+      background: radial-gradient(circle at top left, #1f2937, #111827);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      min-height: 180px;
+    }
+
+    .patience-bar-container {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      right: 12px;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .patience-bar {
+      width: 100%;
+      height: 100%;
+      background: var(--secondary-neon);
+      transition: width 0.1s linear, background-color 0.5s ease;
+    }
+
+    .customer-avatar {
+      font-size: 2.8rem;
+      animation: clientBob 2s infinite ease-in-out;
+      margin-top: 10px;
+    }
+
+    @keyframes clientBob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .speech-bubble {
+      background: white;
+      color: black;
+      border-radius: 12px;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      position: relative;
+      text-align: center;
+      width: 95%;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 8px solid transparent;
+      border-bottom-color: white;
+    }
+
+    /* TOPPINGS SELECTOR BAR */
+    .toppings-station {
+      background: rgba(10, 10, 12, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .toppings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .topping-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      padding: 10px;
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+    }
+
+    .topping-btn:hover {
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .topping-btn.active {
+      color: var(--text-light);
+    }
+
+    .topping-btn.active.cebolla-btn { background: rgba(244, 244, 245, 0.15); border-color: #f4f4f5; }
+    .topping-btn.active.cilantro-btn { background: rgba(57, 255, 20, 0.15); border-color: var(--secondary-neon); }
+    .topping-btn.active.limon-btn { background: rgba(163, 230, 53, 0.15); border-color: #a3e635; }
+    .topping-btn.active.salsa-btn { background: rgba(239, 68, 68, 0.15); border-color: #ef4444; }
+
+    /* ACTION BUTTONS */
+    .serve-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--secondary-neon), #15803d);
+      color: #07070a;
+      border: none;
+      border-radius: 12px;
+      font-family: var(--font-body);
+      font-size: 1.1rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(57, 255, 20, 0.25);
+      transition: var(--transition-smooth);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .serve-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 0 25px var(--secondary-neon);
+    }
+
+    .serve-btn:disabled {
+      background: #27272a;
+      color: #52525b;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .reset-btn {
+      width: 100%;
+      padding: 8px;
+      background: transparent;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .reset-btn:hover {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.5);
+    }
+
+    /* SOUND PANEL HEADER */
+    .sound-control-header {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .audio-toggle-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-light);
+      border-radius: 30px;
+      padding: 6px 12px;
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+    }
+
+    .audio-toggle-btn.on {
+      border-color: var(--cyan-neon);
+      color: var(--cyan-neon);
+      background: rgba(0, 240, 255, 0.08);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
+    }
+
+    /* GAME OVER SIMULATOR SCREEN Overlay */
+    .sim-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(7, 7, 10, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      transition: var(--transition-smooth);
+      padding: 30px;
+      text-align: center;
+    }
+
+    .sim-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .overlay-title {
+      font-family: var(--font-header);
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+    }
+
+    .overlay-desc {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 420px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    /* COOK PROGRESS BAR ON COMAL */
+    .comal-progress-container {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.05);
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      opacity: 0;
+      transition: var(--transition-smooth);
+      display: flex;
+    }
+
+    .comal-progress-container.visible {
+      opacity: 1;
+    }
+
+    .comal-progress-bar {
+      width: 0%;
+      height: 100%;
+      background: var(--accent-neon);
+      transition: width 0.3s ease, background-color 0.5s ease;
+    }
+
+    /* TESTIMONIALS SECTION */
+    .reviews-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+    }
+
+    .review-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      padding: 30px;
+      backdrop-filter: blur(10px);
+      position: relative;
+    }
+
+    .stars {
+      color: var(--accent-neon);
+      margin-bottom: 16px;
+      font-size: 1.1rem;
+    }
+
+    .review-quote {
+      font-style: italic;
+      color: var(--text-light);
+      line-height: 1.6;
+      margin-bottom: 20px;
+      font-size: 1rem;
+    }
+
+    .review-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .author-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .author-info h4 {
+      font-size: 0.95rem;
+      font-weight: 800;
+    }
+
+    .author-info p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* DOWNLOADS SECTION */
+    #download {
+      background: radial-gradient(circle at bottom, rgba(255, 0, 127, 0.05) 0%, var(--bg-dark) 80%);
+      text-align: center;
+    }
+
+    .download-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 30px;
+      margin-top: 50px;
+    }
+
+    .download-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      padding: 40px 30px;
+      transition: var(--transition-smooth);
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .download-card:hover {
+      transform: translateY(-8px);
+      border-color: var(--cyan-neon);
+      box-shadow: 0 10px 30px var(--cyan-glow);
+    }
+
+    .download-card:hover h3 {
+      color: var(--cyan-neon);
+    }
+
+    .download-logo {
+      font-size: 3rem;
+      color: var(--text-light);
+    }
+
+    .download-card h3 {
+      font-family: var(--font-header);
+      font-size: 1.6rem;
+      letter-spacing: 0.5px;
+      transition: var(--transition-smooth);
+    }
+
+    .download-card p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border-light);
+      padding: 60px 0;
+      background: #050507;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .footer-grid {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 30px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: var(--transition-smooth);
+    }
+
+    .footer-links a:hover {
+      color: var(--primary-neon);
+    }
+
+    /* MOBILE ADJUSTMENTS */
+    @media (max-width: 768px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 40px;
+      }
+      
+      .hero-content h1 {
+        margin-top: 20px;
+      }
+      
+      .cta-group {
+        justify-content: center;
+      }
+      
+      .nav-container {
+        justify-content: center;
+        flex-direction: column;
+        height: auto;
+        padding: 15px 0;
+        gap: 10px;
+      }
+      
+      nav ul {
+        gap: 20px;
+      }
+      
+      #hero {
+        padding-top: 180px;
+      }
+      
+      .sim-panel {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Layer Grid -->
+  <div class="grid-bg"></div>
+  <div class="vignette"></div>
+
+  <!-- Ambient Floating Icons (Mexican Theme) -->
+  <div class="floating-elements">
+    <!-- SVG Floating Chilli -->
+    <svg class="floating-item" style="top: 15%; left: 8%; animation-delay: 0s; width: 30px; height: 30px;" viewBox="0 0 24 24" fill="none">
+      <path d="M12 2C11 3.5 9 6.5 10 9C10.5 10.3 12 11 11.5 13C11 15 8.5 15.5 8.5 17.5C8.5 19.5 11 22 14.5 22C18 22 20 18.5 19 14.5C18.2 11.3 14.5 8 13.5 5.5L12 2Z" fill="#ff2200"/>
+      <path d="M12 2C12.5 3 13.5 3.5 14 4.5" stroke="#4ade80" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <!-- SVG Floating Lime -->
+    <svg class="floating-item" style="top: 40%; left: 85%; animation-delay: -5s; width: 35px; height: 35px;" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" fill="#a3e635"/>
+      <circle cx="12" cy="12" r="8" fill="#84cc16"/>
+      <path d="M12 4V20M4 12H20M6.3 6.3L17.7 17.7M17.7 6.3L6.3 17.7" stroke="#4d7c0f" stroke-width="1"/>
+    </svg>
+    <!-- SVG Floating Taco -->
+    <svg class="floating-item" style="top: 75%; left: 12%; animation-delay: -12s; width: 45px; height: 45px;" viewBox="0 0 24 24" fill="none">
+      <path d="M2 12C2 12 4 4 12 4C20 4 22 12 22 12H2Z" fill="#eab308"/>
+      <path d="M4 12C4 10 5 9 7 9C9 9 9.5 10.5 11 10C12.5 9.5 13 8 15 8C17 8 18 9 20 12" stroke="#ea580c" stroke-width="2" fill="#ef4444"/>
+      <circle cx="9" cy="10" r="1.5" fill="#f4f4f5"/>
+      <circle cx="14" cy="9.5" r="1.5" fill="#16a34a"/>
+    </svg>
+  </div>
+
+  <!-- NAVIGATION HEADER -->
+  <header>
+    <div class="container nav-container">
+      <a href="#" class="logo-container">
+        <span class="logo-icon">🌮</span>
+        <span class="logo-text">TAQUERO MAMÓN VR</span>
+      </a>
+      <nav>
+        <ul>
+          <li><a href="#hero">Inicio</a></li>
+          <li><a href="#features">Características</a></li>
+          <li><a href="#simulator">Simulador Web</a></li>
+          <li><a href="#download">Descargar</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section id="hero">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <div class="badge">🔥 ¡YA DISPONIBLE DEMO VR!</div>
+        <h1 class="glow-text-pink">TAQUERO<br><span>MAMÓN VR</span></h1>
+        <p class="hero-description">
+          ¡Ponte el delantal y enciende el soplete en el simulador de tacos definitivo en Realidad Virtual! Rebana el trompo de pastor, controla las tortillas en el comal caliente a toda velocidad y atiende a las filas de clientes más hambrientos y exigentes de la Ciudad de México.
+        </p>
+        <div class="cta-group">
+          <a href="#simulator" class="btn btn-primary" id="cta-play-now">
+            <span>🎮 Probar Simulador Web</span>
+          </a>
+          <a href="#download" class="btn btn-secondary">
+            <span>📥 Descargar para Quest</span>
+          </a>
+        </div>
+      </div>
+      
+      <!-- GAME ART IMAGE -->
+      <div class="hero-artwork">
+        <div class="neon-corner-glow glow-1"></div>
+        <div class="neon-corner-glow glow-2"></div>
+        <div class="artwork-wrapper">
+          <div class="artwork-inner">
+            <img src="taquero_mamon_promo.png" alt="Taquero Mamón VR Key Art" class="artwork-img">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GAME FEATURES -->
+  <section id="features">
+    <div class="container">
+      <div class="section-title">
+        <h2 class="glow-text-green">El Arte de la Taquería en VR</h2>
+        <p>Experimenta la emoción caótica y los sonidos chispeantes de un puesto de tacos real con mecánicas diseñadas exclusivamente para la realidad virtual.</p>
+      </div>
+
+      <div class="features-grid">
+        <!-- Feature 1 -->
+        <div class="feature-card pink-hover">
+          <div class="feature-icon-wrapper pink-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 19l8.5-8.5" />
+              <path d="M16 16l3.5-3.5" />
+            </svg>
+          </div>
+          <h3>Físicas de Rebanado Reales</h3>
+          <p>Usa tu hacha de carnicero virtual (cuchillo taquero) para rebanar el trompo de pastor con físicas reales. ¡Atrapa la carne volando directamente con la tortilla en tu mano libre!</p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="feature-card green-hover">
+          <div class="feature-icon-wrapper green-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M8 12h8M12 8v8" />
+            </svg>
+          </div>
+          <h3>El Comal no Perdona</h3>
+          <p>Maneja hasta 6 slots en la plancha a la vez. Pon tortillas a calentar y retíralas en el punto exacto. Si te descuidas, ¡se quemarán y los clientes te restarán propina!</p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="feature-card orange-hover">
+          <div class="feature-icon-wrapper orange-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <h3>Filas de NPCs con Hambre</h3>
+          <p>Los clientes esperan en fila con pedidos específicos. Prepara tacos de Pastor, Bistec o Queso. Dale exactamente lo que pidieron antes de que se les agote la paciencia.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTERACTIVE SIMULATOR WEB -->
+  <section id="simulator">
+    <div class="container">
+      <div class="section-title">
+        <h2 class="glow-text-pink">Simulador Web de Taquería</h2>
+        <p>Prueba una demostración de las mecánicas principales en 2D directamente en tu navegador. ¡Enciende los altavoces!</p>
+      </div>
+
+      <div class="sim-panel">
+        
+        <!-- Sound Activation & Status Banner -->
+        <div class="sound-control-header">
+          <button id="audio-toggle" class="audio-toggle-btn">
+            <span id="audio-icon">🔇</span> <span id="audio-text">Activar Sonido Retro</span>
+          </button>
+        </div>
+
+        <!-- PLAY CONTAINER / OVERLAYS -->
+        <!-- Overlay Welcome / Instructions -->
+        <div id="sim-start-overlay" class="sim-overlay">
+          <span style="font-size: 3.5rem; margin-bottom: 10px;">👨‍🍳</span>
+          <h3 class="overlay-title glow-text-orange">¡Bienvenido al Puesto!</h3>
+          <p class="overlay-desc">
+            Instrucciones rápidas:<br>
+            1. Haz clic en un slot del <strong>Comal</strong> para calentar una tortilla.<br>
+            2. Haz clic sobre ella cuando esté dorada para ponerla en la <strong>Tabla</strong>.<br>
+            3. Añade <strong>Carne</strong> y <strong>Verdura</strong> según pida el cliente.<br>
+            4. ¡Haz clic en <strong>Servir Taco</strong> para cobrar tu dinero!
+          </p>
+          <button class="btn btn-primary" id="btn-start-sim">¡Comenzar Turno!</button>
+        </div>
+
+        <!-- Overlay Game Over -->
+        <div id="sim-gameover-overlay" class="sim-overlay hidden">
+          <span style="font-size: 3.5rem; margin-bottom: 10px;">💸</span>
+          <h3 class="overlay-title glow-text-pink">Fin del Turno</h3>
+          <p class="overlay-desc">
+            ¡Buen trabajo, maestro taquero! Atendiste con orgullo y recolectaste una excelente suma de dinero.
+          </p>
+          <div style="font-size: 2.2rem; font-family: var(--font-header); color: var(--secondary-neon); margin-bottom: 24px;">
+            Ganancias: <span id="final-score">$0.00</span>
+          </div>
+          <button class="btn btn-primary" id="btn-restart-sim">Jugar de Nuevo</button>
+        </div>
+
+        <!-- HUD TOP INFO BAR -->
+        <div class="hud-infobar">
+          <div class="hud-box">
+            <div class="hud-label">Ventas Totales</div>
+            <div class="hud-val hud-score-val" id="sim-score">$0.00</div>
+          </div>
+          <div class="hud-box">
+            <div class="hud-label">Tiempo Restante</div>
+            <div class="hud-val hud-timer-val" id="sim-timer">02:00</div>
+          </div>
+        </div>
+
+        <!-- MAIN INTERACTIVE GRID -->
+        <div class="sim-grid">
+          
+          <!-- Column 1: Comal & Plancha (LEFT) -->
+          <div class="sim-column">
+            <div class="comal-station">
+              <div class="sim-block-title">
+                <span>🔥 El Comal</span>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Calienta tortillas</span>
+              </div>
+              <div class="comal-griddle" id="comal-griddle">
+                <!-- 6 Slots on the griddle -->
+                <div class="comal-slot" data-slot="0" id="slot-0"></div>
+                <div class="comal-slot" data-slot="1" id="slot-1"></div>
+                <div class="comal-slot" data-slot="2" id="slot-2"></div>
+                <div class="comal-slot" data-slot="3" id="slot-3"></div>
+                <div class="comal-slot" data-slot="4" id="slot-4"></div>
+                <div class="comal-slot" data-slot="5" id="slot-5"></div>
+              </div>
+              
+              <!-- Sizzle meter info -->
+              <div class="comal-progress-container" id="comal-progress-container">
+                <div class="comal-progress-bar" id="comal-progress-bar"></div>
+              </div>
+            </div>
+            
+            <!-- Meat Selection (trompo & pans) -->
+            <div class="meat-station">
+              <div class="sim-block-title">
+                <span>🥩 Estación de Carnes</span>
+              </div>
+              
+              <div class="trompo-container" id="pastor-trompo" title="¡Haz clic rápido para rebanar Pastor!">
+                <!-- Slice Spark effect line -->
+                <div class="slice-effect" id="slice-line"></div>
+                <!-- Trompo SVG graphic -->
+                <svg class="trompo-svg" viewBox="0 0 100 150">
+                  <path d="M50 10V140" stroke="#78350f" stroke-width="6" stroke-linecap="round"/>
+                  <!-- Core Pastor Meat Shape (spit) -->
+                  <path d="M30 40 C 25 70, 20 90, 50 115 C 80 90, 75 70, 70 40 C 65 30, 35 30, 30 40 Z" fill="#ea580c" stroke="#9a3412" stroke-width="2"/>
+                  <!-- Pineapple on top -->
+                  <path d="M40 30 C 40 18, 60 18, 60 30 Z" fill="#facc15" stroke="#ca8a04" stroke-width="1.5"/>
+                  <path d="M50 12 L 44 5 M 50 12 L 56 5 M 50 12 L 50 2" stroke="#15803d" stroke-width="2" stroke-linecap="round"/>
+                  <!-- Meat folds/textures -->
+                  <path d="M32 50 Q 50 62 68 50" fill="none" stroke="#b45309" stroke-width="3" stroke-linecap="round"/>
+                  <path d="M28 70 Q 50 85 72 70" fill="none" stroke="#b45309" stroke-width="3" stroke-linecap="round"/>
+                  <path d="M30 90 Q 50 102 70 90" fill="none" stroke="#b45309" stroke-width="3" stroke-linecap="round"/>
+                  <!-- Onion on bottom -->
+                  <path d="M42 112 C 42 120, 58 120, 58 112 Z" fill="#f4f4f5" stroke="#d4d4d8" stroke-width="1.5"/>
+                </svg>
+                <div style="font-size: 0.8rem; font-weight: 800; color: var(--primary-neon); margin-top: 5px;">CORTAR PASTOR</div>
+              </div>
+
+              <div class="meat-selector">
+                <button class="meat-btn" id="btn-meat-pastor" disabled>
+                  <div class="meat-btn-img">🍖</div>
+                  <span>Pastor</span>
+                </button>
+                <button class="meat-btn" id="btn-meat-bistec" data-meat="bistec">
+                  <div class="meat-btn-img">🥩</div>
+                  <span>Bistec</span>
+                </button>
+                <button class="meat-btn" id="btn-meat-queso" data-meat="queso">
+                  <div class="meat-btn-img">🧀</div>
+                  <span>Queso</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Preparation Board (CENTER) -->
+          <div class="sim-column">
+            <div class="assembly-station">
+              <div class="sim-block-title" style="width: 100%;">
+                <span>🍽️ Tabla de Preparación</span>
+                <span id="taco-status" style="font-size: 0.85rem; color: var(--text-muted);">Mesa vacía</span>
+              </div>
+              
+              <!-- Table Layout -->
+              <div class="taco-table" id="taco-table">
+                <div class="prep-taco" id="prep-taco">
+                  <!-- Tortilla Circle -->
+                  <div class="prep-taco-tortilla"></div>
+                  <!-- Toppings graphics layers -->
+                  <div class="topping-meat-pastor"></div>
+                  <div class="topping-meat-bistec"></div>
+                  <div class="topping-meat-queso"></div>
+                  
+                  <div class="topping-cebolla"></div>
+                  <div class="topping-cilantro"></div>
+                  <div class="topping-limon"></div>
+                  <div class="topping-salsa"></div>
+                </div>
+              </div>
+
+              <!-- Reset current assembly -->
+              <button class="reset-btn" id="btn-clear-taco">Desechar ingredientes de la tabla</button>
+            </div>
+          </div>
+
+          <!-- Column 3: Customer & Toppings Selection (RIGHT) -->
+          <div class="sim-column">
+            
+            <!-- Customer Card -->
+            <div class="customer-card">
+              <div class="patience-bar-container">
+                <div class="patience-bar" id="patience-bar"></div>
+              </div>
+              <div class="customer-avatar" id="client-avatar">👦</div>
+              <div style="font-weight: 800; font-size: 0.95rem;" id="client-name">Cliente</div>
+              <div class="speech-bubble" id="client-request">
+                ¡Hola! Pide tu taco en la taquería.
+              </div>
+            </div>
+
+            <!-- Toppings additions -->
+            <div class="toppings-station">
+              <div class="sim-block-title">
+                <span>🥗 Verdura y Salsas</span>
+              </div>
+              <div class="toppings-grid">
+                <button class="topping-btn cebolla-btn" data-topping="cebolla">
+                  <span>🧅 Cebolla</span>
+                </button>
+                <button class="topping-btn cilantro-btn" data-topping="cilantro">
+                  <span>🌿 Cilantro</span>
+                </button>
+                <button class="topping-btn limon-btn" data-topping="limon">
+                  <span>🍋 Limón</span>
+                </button>
+                <button class="topping-btn salsa-btn" data-topping="salsa">
+                  <span>🌶️ Salsa Roja</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Serve Action -->
+            <div>
+              <button class="serve-btn" id="btn-serve" disabled>¡Servir Taco!</button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS (NPC REVIEWS) -->
+  <section id="reviews">
+    <div class="container">
+      <div class="section-title">
+        <h2 class="glow-text-orange">Críticas de los Comensales</h2>
+        <p>Esto es lo que opinan los clientes más distinguidos que frecuentan el puesto de Taquero Mamón VR.</p>
+      </div>
+
+      <div class="reviews-grid">
+        <!-- Review 1 -->
+        <div class="review-card">
+          <div class="stars">★★★★★</div>
+          <p class="review-quote">"El pastor rebanado con el hacha tiene un sabor de otro mundo. La salsa pica sabroso. Lo único malo es que el taquero me aventó el limón directo a la frente en VR, pero el taco lo compensa."</p>
+          <div class="review-author">
+            <div class="author-avatar">👨‍💼</div>
+            <div class="author-info">
+              <h4>Don Neto</h4>
+              <p>Cliente Distinguido - CDMX</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review 2 -->
+        <div class="review-card">
+          <div class="stars">★★★★☆</div>
+          <p class="review-quote">"¡Los mejores tacos en VR de la historia! Increíble interacción física. Tienes que mover las manos súper rápido. A veces me da risa ver volar los trozos de carne y cómo caen en los platos de la gente."</p>
+          <div class="review-author">
+            <div class="author-avatar">👩</div>
+            <div class="author-info">
+              <h4>La Güera</h4>
+              <p>Frecuenta el Puesto de Noche</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review 3 -->
+        <div class="review-card">
+          <div class="stars">★★★★★</div>
+          <p class="review-quote">"El radio del puesto pone puras rolitas norteñas que te meten bien en el ambiente. El estrés de que se te quemen las tortillas en el comal es real. ¡Un juego súper divertido!"</p>
+          <div class="review-author">
+            <div class="author-avatar">👨‍🔧</div>
+            <div class="author-info">
+              <h4>El Compa</h4>
+              <p>Mecánico del Vecindario</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOWNLOADS SECTION -->
+  <section id="download">
+    <div class="container">
+      <div class="section-title">
+        <h2 class="glow-text-pink">¡Prepara Tacos en VR Ya!</h2>
+        <p>Descarga la demo o consigue la versión completa para experimentar la simulación física real con visores de Realidad Virtual.</p>
+      </div>
+
+      <div class="download-grid">
+        <!-- Meta Quest Card -->
+        <a href="#" class="download-card">
+          <div class="download-logo">🥽</div>
+          <h3>Meta Quest App Lab</h3>
+          <p>Disponible para Quest 2, Quest 3 y Quest Pro. Juega de forma nativa sin cables.</p>
+          <span class="badge" style="margin-bottom:0;">Conseguir en Oculus</span>
+        </a>
+
+        <!-- SideQuest Card -->
+        <a href="#" class="download-card">
+          <div class="download-logo">⚡</div>
+          <h3>SideQuest VR</h3>
+          <p>Instala la demo directamente en tu visor mediante SideQuest en un solo clic.</p>
+          <span class="badge" style="margin-bottom:0; border-color: var(--cyan-neon); color: var(--cyan-neon);">Ver en SideQuest</span>
+        </a>
+
+        <!-- itch.io Card -->
+        <a href="#" class="download-card">
+          <div class="download-logo">🕹️</div>
+          <h3>SteamVR / itch.io</h3>
+          <p>Descarga el ejecutable para PCVR compatible con visores Valve Index y HTC Vive.</p>
+          <span class="badge" style="margin-bottom:0; border-color: var(--secondary-neon); color: var(--secondary-neon);">Descargar PCVR</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container footer-grid">
+      <div>
+        <p style="font-weight:800; color:var(--text-light); margin-bottom:8px;">🌮 TAQUERO MAMÓN VR</p>
+        <p>© 2026 Francisco Farfán. Todos los derechos reservados.</p>
+        <p style="font-size:0.8rem; margin-top:4px;">Hecho para fans del pastor y la adrenalina.</p>
+      </div>
+      <ul class="footer-links">
+        <li><a href="#hero">Inicio</a></li>
+        <li><a href="#features">Características</a></li>
+        <li><a href="#simulator">Simulador Web</a></li>
+        <li><a href="#download">Descargar</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <!-- SIMULATOR JAVASCRIPT GAME LOGIC -->
+  <script>
+    // Audio Synth engine (Web Audio API)
+    let audioCtx = null;
+    let isSoundOn = false;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playSound(type) {
+      if (!isSoundOn) return;
+      initAudio();
+      
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      osc.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      
+      const now = audioCtx.currentTime;
+      
+      if (type === 'sizzle') {
+        // Sizzle noise for tortilla cooking
+        // Create noise buffer
+        const bufferSize = audioCtx.sampleRate * 0.4;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        
+        // Filter noise to sound like sizzling
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 4000;
+        filter.Q.value = 1.0;
+        
+        const noiseGain = audioCtx.createGain();
+        noiseGain.gain.setValueAtTime(0.08, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        
+        noise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(audioCtx.destination);
+        noise.start(now);
+        
+      } else if (type === 'chop') {
+        // Slice sound effect (sharp impact)
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.exponentialRampToValueAtTime(40, now + 0.12);
+        
+        gainNode.gain.setValueAtTime(0.2, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        
+        osc.start(now);
+        osc.stop(now + 0.13);
+        
+        // Add a high-pitch metallic scratch
+        const oscMetal = audioCtx.createOscillator();
+        const metalGain = audioCtx.createGain();
+        oscMetal.type = 'sine';
+        oscMetal.frequency.setValueAtTime(5000, now);
+        oscMetal.frequency.setValueAtTime(2000, now + 0.03);
+        
+        oscMetal.connect(metalGain);
+        metalGain.connect(audioCtx.destination);
+        metalGain.gain.setValueAtTime(0.05, now);
+        metalGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+        oscMetal.start(now);
+        oscMetal.stop(now + 0.07);
+        
+      } else if (type === 'coin') {
+        // Double ding retro coin sound
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(987.77, now); // B5
+        osc.frequency.setValueAtTime(1318.51, now + 0.08); // E6
+        
+        gainNode.gain.setValueAtTime(0.12, now);
+        gainNode.gain.setValueAtTime(0.12, now + 0.08);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        
+        osc.start(now);
+        osc.stop(now + 0.36);
+        
+      } else if (type === 'fail') {
+        // Sad horn fail sound
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now); // A3
+        osc.frequency.linearRampToValueAtTime(146.83, now + 0.35); // D3
+        
+        gainNode.gain.setValueAtTime(0.15, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        
+        osc.start(now);
+        osc.stop(now + 0.45);
+      } else if (type === 'grab') {
+        // Soft click
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, now);
+        gainNode.gain.setValueAtTime(0.08, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+        osc.start(now);
+        osc.stop(now + 0.06);
+      }
+    }
+
+    // Audio Switch Event Listener
+    const audioBtn = document.getElementById('audio-toggle');
+    audioBtn.addEventListener('click', () => {
+      isSoundOn = !isSoundOn;
+      if (isSoundOn) {
+        initAudio();
+        audioBtn.classList.add('on');
+        document.getElementById('audio-icon').innerText = '🔊';
+        document.getElementById('audio-text').innerText = 'Sonido Retro Activo';
+        playSound('coin');
+      } else {
+        audioBtn.classList.remove('on');
+        document.getElementById('audio-icon').innerText = '🔇';
+        document.getElementById('audio-text').innerText = 'Activar Sonido Retro';
+      }
+    });
+
+    // SIMULATOR GAME STATE VARIABLES
+    let gameScore = 0.00;
+    let timerSeconds = 120; // 2 minutes
+    let gameInterval = null;
+    let clientInterval = null;
+    let isGameRunning = false;
+
+    // COMAL SLOTS STATE
+    // An array storing the state of the 6 comal slots
+    // State of slot: null (empty), or { state: 'raw'|'cooking'|'cooked'|'burnt', cookProgress: 0-100 }
+    let comalSlots = [null, null, null, null, null, null];
+    let selectedComalSlot = null;
+    let comalInterval = null;
+
+    // ACTIVE TACO STATE (being assembled on table)
+    let activeTaco = null; // null if no tortilla on table, or { state: 'raw'|'cooked'|'burnt', meat: null, cebolla: false, cilantro: false, limon: false, salsa: false }
+
+    // CUSTOMER STATE
+    const clientAvatars = ['👨‍💼', '👩', '👨‍🔧', '👮', '👨‍🎤', '👵', '🤠'];
+    const clientNames = ['Don Neto', 'La Güera', 'El Compa', 'Oficial Ortega', 'El Roker', 'Doña Tere', 'Socio'];
+    
+    // Meat definitions:
+    const MEATS = ['pastor', 'bistec', 'queso'];
+    
+    let currentCustomer = {
+      avatar: '👦',
+      name: 'Cliente',
+      requestMeat: 'pastor',
+      requestToppings: [], // list of strings
+      patience: 100, // 0 to 100
+      maxPatienceSec: 18
+    };
+
+    // DOM References
+    const simScoreEl = document.getElementById('sim-score');
+    const simTimerEl = document.getElementById('sim-timer');
+    const btnStartSim = document.getElementById('btn-start-sim');
+    const btnRestartSim = document.getElementById('btn-restart-sim');
+    const simStartOverlay = document.getElementById('sim-start-overlay');
+    const simGameOverOverlay = document.getElementById('sim-gameover-overlay');
+    const finalScoreEl = document.getElementById('final-score');
+    
+    const comalGriddle = document.getElementById('comal-griddle');
+    const comalProgressContainer = document.getElementById('comal-progress-container');
+    const comalProgressBar = document.getElementById('comal-progress-bar');
+    
+    const btnMeatPastor = document.getElementById('btn-meat-pastor');
+    const btnMeatBistec = document.getElementById('btn-meat-bistec');
+    const btnMeatQueso = document.getElementById('btn-meat-queso');
+    const pastorTrompo = document.getElementById('pastor-trompo');
+    const sliceLine = document.getElementById('slice-line');
+    
+    const prepTacoEl = document.getElementById('prep-taco');
+    const btnClearTaco = document.getElementById('btn-clear-taco');
+    const tacoStatusEl = document.getElementById('taco-status');
+    
+    const clientAvatarEl = document.getElementById('client-avatar');
+    const clientNameEl = document.getElementById('client-name');
+    const clientRequestEl = document.getElementById('client-request');
+    const patienceBar = document.getElementById('patience-bar');
+    const btnServe = document.getElementById('btn-serve');
+
+    // Toppings Buttons
+    const toppingBtns = document.querySelectorAll('.topping-btn');
+
+    // INITIAL SETUP
+    function setupComalHTML() {
+      for (let i = 0; i < 6; i++) {
+        const slotEl = document.getElementById(`slot-${i}`);
+        slotEl.innerHTML = ''; // Clear
+        slotEl.classList.remove('occupied');
+        
+        if (comalSlots[i] === null) {
+          slotEl.innerHTML = `<span style="font-size: 0.7rem; color: rgba(255,255,255,0.2);">Vacio</span>`;
+        } else {
+          slotEl.classList.add('occupied');
+          const tortillaEl = document.createElement('div');
+          tortillaEl.className = `tortilla ${comalSlots[i].state}`;
+          slotEl.appendChild(tortillaEl);
+          
+          // Steam effect if cooking
+          if (comalSlots[i].state === 'cooking' || comalSlots[i].state === 'cooked') {
+            const steam = document.createElement('div');
+            steam.className = 'sizzle-steam';
+            steam.innerText = '💨';
+            slotEl.appendChild(steam);
+          }
+        }
+      }
+    }
+
+    // GAME ENGINE LOOPS
+    function startGame() {
+      initAudio();
+      gameScore = 0.00;
+      timerSeconds = 120;
+      comalSlots = [null, null, null, null, null, null];
+      activeTaco = null;
+      selectedComalSlot = null;
+      isGameRunning = true;
+      
+      updateScoreHUD();
+      updateTimerHUD();
+      setupComalHTML();
+      updateTacoTableHTML();
+      spawnCustomer();
+      
+      simStartOverlay.classList.add('hidden');
+      simGameOverOverlay.classList.add('hidden');
+      
+      // Timer interval
+      gameInterval = setInterval(() => {
+        timerSeconds--;
+        updateTimerHUD();
+        if (timerSeconds <= 0) {
+          endGame();
+        }
+      }, 1000);
+      
+      // Comal processing interval (tick every 250ms)
+      comalInterval = setInterval(updateComalCooking, 250);
+      
+      // Client patience ticker
+      clientInterval = setInterval(updateClientPatience, 100);
+      
+      playSound('coin');
+    }
+
+    function endGame() {
+      isGameRunning = false;
+      clearInterval(gameInterval);
+      clearInterval(comalInterval);
+      clearInterval(clientInterval);
+      
+      finalScoreEl.innerText = `$${gameScore.toFixed(2)}`;
+      simGameOverOverlay.classList.remove('hidden');
+      playSound('fail');
+    }
+
+    function updateScoreHUD() {
+      simScoreEl.innerText = `$${gameScore.toFixed(2)}`;
+    }
+
+    function updateTimerHUD() {
+      const mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+      const secs = (timerSeconds % 60).toString().padStart(2, '0');
+      simTimerEl.innerText = `${mins}:${secs}`;
+    }
+
+    // COMAL MECHANICS
+    function handleComalSlotClick(index) {
+      if (!isGameRunning) return;
+      
+      const slot = comalSlots[index];
+      
+      if (slot === null) {
+        // Place raw tortilla on comal
+        comalSlots[index] = {
+          state: 'raw',
+          cookProgress: 0
+        };
+        playSound('grab');
+        setupComalHTML();
+        selectComalSlot(index);
+      } else {
+        // Grab tortilla from comal to table
+        if (activeTaco !== null) {
+          // Table already occupied! Must finish or discard it first.
+          alert("¡La tabla de preparación ya tiene un taco! Sírvelo o deséchalo antes de tomar otra tortilla.");
+          return;
+        }
+        
+        // Grab it
+        activeTaco = {
+          state: slot.state === 'cooking' ? 'raw' : slot.state, // if still cooking, it's raw/undercooked
+          meat: null,
+          cebolla: false,
+          cilantro: false,
+          limon: false,
+          salsa: false
+        };
+        
+        // Remove from comal
+        comalSlots[index] = null;
+        selectedComalSlot = null;
+        comalProgressContainer.classList.remove('visible');
+        
+        playSound('grab');
+        setupComalHTML();
+        updateTacoTableHTML();
+        checkButtonsState();
+      }
+    }
+
+    // Add event listeners to comal slots
+    for (let i = 0; i < 6; i++) {
+      document.getElementById(`slot-${i}`).addEventListener('click', () => {
+        handleComalSlotClick(i);
+      });
+    }
+
+    function selectComalSlot(index) {
+      selectedComalSlot = index;
+      const slot = comalSlots[index];
+      if (slot) {
+        comalProgressContainer.classList.add('visible');
+        updateComalProgressHUD(slot.cookProgress, slot.state);
+      } else {
+        comalProgressContainer.classList.remove('visible');
+      }
+    }
+
+    function updateComalProgressHUD(progress, state) {
+      comalProgressBar.style.width = `${progress}%`;
+      
+      // Color change on meter
+      if (state === 'raw') {
+        comalProgressBar.style.backgroundColor = '#fcd34d'; // yellow
+      } else if (state === 'cooking') {
+        comalProgressBar.style.backgroundColor = '#fb923c'; // orange
+      } else if (state === 'cooked') {
+        comalProgressBar.style.backgroundColor = '#22c55e'; // green
+      } else if (state === 'burnt') {
+        comalProgressBar.style.backgroundColor = '#ef4444'; // red
+      }
+    }
+
+    // Tick comal heat progress
+    function updateComalCooking() {
+      let changed = false;
+      for (let i = 0; i < 6; i++) {
+        const slot = comalSlots[i];
+        if (slot !== null) {
+          // Increase progress
+          slot.cookProgress += 2; // cook speed tick
+          
+          let oldState = slot.state;
+          
+          if (slot.cookProgress < 30) {
+            slot.state = 'raw';
+          } else if (slot.cookProgress >= 30 && slot.cookProgress < 75) {
+            slot.state = 'cooking';
+            if (Math.random() < 0.2) playSound('sizzle');
+          } else if (slot.cookProgress >= 75 && slot.cookProgress < 95) {
+            slot.state = 'cooked';
+            if (Math.random() < 0.1) playSound('sizzle');
+          } else if (slot.cookProgress >= 95) {
+            slot.state = 'burnt';
+          }
+          
+          if (oldState !== slot.state) {
+            changed = true;
+          }
+        }
+      }
+      
+      if (changed) {
+        setupComalHTML();
+      }
+      
+      // Update active selection progress
+      if (selectedComalSlot !== null) {
+        const slot = comalSlots[selectedComalSlot];
+        if (slot) {
+          updateComalProgressHUD(slot.cookProgress, slot.state);
+        } else {
+          comalProgressContainer.classList.remove('visible');
+          selectedComalSlot = null;
+        }
+      }
+    }
+
+    // TACO ASSEMBLY TABLE LÒGIC
+    function updateTacoTableHTML() {
+      if (activeTaco === null) {
+        prepTacoEl.style.opacity = '0';
+        prepTacoEl.className = 'prep-taco';
+        tacoStatusEl.innerText = "Mesa vacía";
+        tacoStatusEl.style.color = 'var(--text-muted)';
+      } else {
+        prepTacoEl.style.opacity = '1';
+        prepTacoEl.className = `prep-taco ${activeTaco.state}`;
+        
+        // Add classes for ingredients
+        if (activeTaco.meat) {
+          prepTacoEl.classList.add(`has-${activeTaco.meat}`);
+        }
+        if (activeTaco.cebolla) prepTacoEl.classList.add('has-cebolla');
+        if (activeTaco.cilantro) prepTacoEl.classList.add('has-cilantro');
+        if (activeTaco.limon) prepTacoEl.classList.add('has-limon');
+        if (activeTaco.salsa) prepTacoEl.classList.add('has-salsa');
+        
+        // Label
+        let tStateStr = "Tortilla Cruda";
+        let tStateColor = '#fffbeb';
+        if (activeTaco.state === 'cooked') {
+          tStateStr = "Tortilla Caliente";
+          tStateColor = '#fcd34d';
+        } else if (activeTaco.state === 'burnt') {
+          tStateStr = "¡Tortilla Quemada!";
+          tStateColor = '#ef4444';
+        }
+        
+        let meatStr = activeTaco.meat ? `de ${activeTaco.meat.toUpperCase()}` : "sin carne";
+        tacoStatusEl.innerText = `${tStateStr} ${meatStr}`;
+        tacoStatusEl.style.color = tStateColor;
+      }
+      
+      // Update topping buttons state
+      toppingBtns.forEach(btn => {
+        const top = btn.getAttribute('data-topping');
+        if (activeTaco !== null && activeTaco[top]) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+      
+      checkButtonsState();
+    }
+
+    function checkButtonsState() {
+      const hasTortilla = activeTaco !== null;
+      
+      // Enable toppings buttons if we have tortilla
+      toppingBtns.forEach(btn => {
+        btn.disabled = !hasTortilla;
+      });
+      
+      // Enable meat buttons
+      btnMeatBistec.disabled = !hasTortilla;
+      btnMeatQueso.disabled = !hasTortilla;
+      // Pastor button is simulated via clicking the trompo!
+      // But we change styling to show if you can use it
+      if (hasTortilla) {
+        pastorTrompo.style.pointerEvents = 'auto';
+        pastorTrompo.style.opacity = '1';
+      } else {
+        pastorTrompo.style.pointerEvents = 'none';
+        pastorTrompo.style.opacity = '0.5';
+      }
+      
+      // Serve button is active if we have tortilla (even if it's empty, they can serve it but NPC will get angry)
+      btnServe.disabled = !hasTortilla;
+    }
+
+    // TOPPING TOGGLES
+    toppingBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (activeTaco === null) return;
+        const top = btn.getAttribute('data-topping');
+        activeTaco[top] = !activeTaco[top];
+        playSound('grab');
+        updateTacoTableHTML();
+      });
+    });
+
+    // MEAT ADDS
+    function addMeatToTaco(meatType) {
+      if (activeTaco === null) return;
+      activeTaco.meat = meatType;
+      playSound('sizzle');
+      updateTacoTableHTML();
+    }
+
+    btnMeatBistec.addEventListener('click', () => addMeatToTaco('bistec'));
+    btnMeatQueso.addEventListener('click', () => addMeatToTaco('queso'));
+
+    // PASTOR TROMPO SLICING (SPECIAL INTERACTIVE CLICK)
+    pastorTrompo.addEventListener('click', () => {
+      if (activeTaco === null) return;
+      
+      // Trigger slash animation
+      pastorTrompo.classList.add('slicing');
+      playSound('chop');
+      
+      setTimeout(() => {
+        pastorTrompo.classList.remove('slicing');
+      }, 300);
+      
+      // Add pastor to table taco
+      addMeatToTaco('pastor');
+    });
+
+    // DISCARD TACO
+    btnClearTaco.addEventListener('click', () => {
+      if (activeTaco === null) return;
+      activeTaco = null;
+      playSound('fail');
+      updateTacoTableHTML();
+    });
+
+    // CUSTOMER SPAWN & PATIENCE MECHANICS
+    function spawnCustomer() {
+      if (!isGameRunning) return;
+      
+      const rndIndex = Math.floor(Math.random() * clientAvatars.length);
+      const name = clientNames[rndIndex];
+      const avatar = clientAvatars[rndIndex];
+      
+      // Select random meat
+      const meat = MEATS[Math.floor(Math.random() * MEATS.length)];
+      
+      // Build toppings list
+      const toppingsPool = ['cebolla', 'cilantro', 'limon', 'salsa'];
+      const toppingsCount = Math.floor(Math.random() * 4); // 0 to 3 toppings requested
+      const toppings = [];
+      
+      // Randomly pick toppings
+      const poolShuffled = toppingsPool.sort(() => 0.5 - Math.random());
+      for (let i = 0; i < toppingsCount; i++) {
+        toppings.push(poolShuffled[i]);
+      }
+      
+      currentCustomer = {
+        name: name,
+        avatar: avatar,
+        requestMeat: meat,
+        requestToppings: toppings,
+        patience: 100,
+        maxPatienceSec: 15 + Math.floor(Math.random() * 8) // 15 to 22 seconds
+      };
+      
+      // Render
+      clientAvatarEl.innerText = currentCustomer.avatar;
+      clientNameEl.innerText = currentCustomer.name;
+      
+      // Build text order
+      let toppingsText = "";
+      if (toppings.length === 0) {
+        toppingsText = "sencillo (sin verdura)";
+      } else {
+        toppingsText = "con " + toppings.map(t => t === 'limon' ? 'limón' : t === 'salsa' ? 'salsa' : t).join(' y ');
+      }
+      
+      clientRequestEl.innerText = `¡Buenas! Quiero un taco de ${currentCustomer.requestMeat.toUpperCase()} ${toppingsText}.`;
+      patienceBar.style.width = '100%';
+      patienceBar.style.backgroundColor = 'var(--secondary-neon)';
+    }
+
+    function updateClientPatience() {
+      if (!isGameRunning) return;
+      
+      // Reduce patience
+      const step = (100 / (currentCustomer.maxPatienceSec * 10)); // 10 ticks per second
+      currentCustomer.patience -= step;
+      
+      if (currentCustomer.patience <= 0) {
+        currentCustomer.patience = 0;
+        // Customer leaves angry!
+        playSound('fail');
+        gameScore = Math.max(0, gameScore - 5.00); // penalty
+        updateScoreHUD();
+        spawnCustomer();
+      }
+      
+      patienceBar.style.width = `${currentCustomer.patience}%`;
+      
+      // Color shifts based on patience
+      if (currentCustomer.patience > 50) {
+        patienceBar.style.backgroundColor = 'var(--secondary-neon)'; // green
+      } else if (currentCustomer.patience > 20 && currentCustomer.patience <= 50) {
+        patienceBar.style.backgroundColor = 'var(--accent-neon)'; // orange
+      } else {
+        patienceBar.style.backgroundColor = 'var(--primary-neon)'; // flashing pink
+      }
+    }
+
+    // SERVING CHECKER
+    btnServe.addEventListener('click', () => {
+      if (!isGameRunning || activeTaco === null) return;
+      
+      let clientHappy = true;
+      let reviewMsg = "";
+      let payout = 15.00; // Base taco price
+      
+      // 1. Check tortilla state
+      if (activeTaco.state === 'raw') {
+        clientHappy = false;
+        reviewMsg = "¡La tortilla está fría y cruda! Qué mal servicio.";
+        payout = 0;
+      } else if (activeTaco.state === 'burnt') {
+        clientHappy = false;
+        reviewMsg = "¡Esta tortilla está carbonizada, sabe amarga!";
+        payout = 0;
+      } else {
+        // Tortilla is cooked. Check meat.
+        if (activeTaco.meat !== currentCustomer.requestMeat) {
+          clientHappy = false;
+          reviewMsg = `Pedí de ${currentCustomer.requestMeat.toUpperCase()} y me diste de ${activeTaco.meat ? activeTaco.meat.toUpperCase() : 'NADA'}.`;
+          payout = 0;
+        } else {
+          // Check toppings
+          // Must match perfectly or have minor variations (we check perfect matches for full points)
+          const requested = currentCustomer.requestToppings;
+          const actual = [];
+          if (activeTaco.cebolla) actual.push('cebolla');
+          if (activeTaco.cilantro) actual.push('cilantro');
+          if (activeTaco.limon) actual.push('limon');
+          if (activeTaco.salsa) actual.push('salsa');
+          
+          let toppingsMatch = true;
+          
+          // Check all requested are present
+          requested.forEach(t => {
+            if (!actual.includes(t)) toppingsMatch = false;
+          });
+          // Check no extra toppings are present
+          actual.forEach(t => {
+            if (!requested.includes(t)) toppingsMatch = false;
+          });
+          
+          if (!toppingsMatch) {
+            clientHappy = false;
+            reviewMsg = "La carne está bien, pero fallaste con la verdura o salsas.";
+            payout = 5.00; // partial pay for poor toppings
+          } else {
+            // Perfect taco!
+            // Calculate speed tip
+            const speedPct = currentCustomer.patience / 100;
+            const tip = parseFloat((speedPct * 10.00).toFixed(2)); // up to $10 tip
+            payout += tip;
+            
+            reviewMsg = `¡Delicioso! El taco de ${activeTaco.meat.toUpperCase()} está de 10. ¡Toma tu propina!`;
+          }
+        }
+      }
+      
+      // Apply result
+      if (clientHappy) {
+        playSound('coin');
+        gameScore += payout;
+      } else {
+        playSound('fail');
+        // Subtract standard penalty if completely wrong
+        if (payout === 0) {
+          gameScore = Math.max(0, gameScore - 2.50);
+        } else {
+          gameScore += payout;
+        }
+      }
+      
+      // Update UI
+      updateScoreHUD();
+      
+      // Clear table
+      activeTaco = null;
+      updateTacoTableHTML();
+      
+      // Show feedback speech bubble for a short moment, then spawn next customer
+      clientRequestEl.innerText = reviewMsg;
+      if (clientHappy) {
+        clientAvatarEl.innerText = '🤩';
+      } else {
+        clientAvatarEl.innerText = '😡';
+      }
+      
+      // Pause patience ticker briefly
+      clearInterval(clientInterval);
+      
+      setTimeout(() => {
+        if (isGameRunning) {
+          spawnCustomer();
+          clientInterval = setInterval(updateClientPatience, 100);
+        }
+      }, 2000);
+    });
+
+    // OVERLAYS LISTENERS
+    btnStartSim.addEventListener('click', startGame);
+    btnRestartSim.addEventListener('click', startGame);
+
+    // Dynamic CTA scroll helper
+    document.getElementById('cta-play-now').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelector('#simulator').scrollIntoView({ behavior: 'smooth' });
+    });
+  </script>
+</body>
+</html>
