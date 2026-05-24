@@ -597,7 +597,7 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>Activa o desactiva los rayos de ambas manos.</summary>
-    private void SetHandRays(bool active)
+    public void SetHandRays(bool active)
     {
         if (leftHandRay != null) leftHandRay.SetActive(active);
         if (rightHandRay != null) rightHandRay.SetActive(active);

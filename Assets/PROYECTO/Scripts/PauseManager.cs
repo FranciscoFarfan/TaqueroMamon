@@ -14,6 +14,12 @@ using TMPro;
 ///
 /// El canvas de pausa debe estar posicionado frente al jugador.
 /// Se puede poner como hijo de la cámara VR para que siempre esté visible.
+///
+/// NOTA TÉCNICA:
+///   El canvas se oculta usando Canvas.enabled + GraphicRaycaster.enabled en lugar
+///   de SetActive(false), para evitar el bug de Unity donde los hijos quedan
+///   desactivados permanentemente al hacer SetActive(false) en el padre y luego
+///   SetActive(true) en ciclos posteriores.
 /// </summary>
 public class PauseManager : MonoBehaviour
 {
@@ -50,6 +56,10 @@ public class PauseManager : MonoBehaviour
 
     private bool _isPaused = false;
 
+    // Referencias al Canvas y GraphicRaycaster para ocultar sin afectar hijos
+    private Canvas _pauseCanvasComponent;
+    private GraphicRaycaster _pauseRaycaster;
+
     /// <summary>¿Está el juego pausado?</summary>
     public bool IsPaused => _isPaused;
 
@@ -69,8 +79,17 @@ public class PauseManager : MonoBehaviour
 
     void Start()
     {
-        // Ocultar menú de pausa al inicio
-        if (pauseCanvas != null) pauseCanvas.SetActive(false);
+        // Obtener referencias al Canvas y Raycaster
+        if (pauseCanvas != null)
+        {
+            _pauseCanvasComponent = pauseCanvas.GetComponent<Canvas>();
+            _pauseRaycaster = pauseCanvas.GetComponent<GraphicRaycaster>();
+
+            // Mantener el GameObject activo (para que los hijos no se destruyan),
+            // pero ocultarlo visualmente deshabilitando el Canvas y el Raycaster.
+            pauseCanvas.SetActive(true);
+            SetPauseCanvasVisible(false);
+        }
 
         // Configurar botones
         if (continueButton != null)
@@ -102,6 +121,37 @@ public class PauseManager : MonoBehaviour
             TogglePause();
         }
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  HELPERS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Muestra u oculta el canvas de pausa usando Canvas.enabled y GraphicRaycaster.enabled.
+    /// Al mostrar (visible=true), fuerza la reactivación de todos los hijos por si algún
+    /// sistema externo los desactivó individualmente.
+    /// </summary>
+    private void SetPauseCanvasVisible(bool visible)
+    {
+        if (pauseCanvas == null) return;
+
+        // Al mostrar: primero reactiva TODOS los hijos que estén inactivos
+        if (visible)
+        {
+            Transform[] allChildren = pauseCanvas.GetComponentsInChildren<Transform>(includeInactive: true);
+            foreach (Transform child in allChildren)
+            {
+                if (!child.gameObject.activeSelf)
+                    child.gameObject.SetActive(true);
+            }
+        }
+
+        if (_pauseCanvasComponent != null)
+            _pauseCanvasComponent.enabled = visible;
+        if (_pauseRaycaster != null)
+            _pauseRaycaster.enabled = visible;
+    }
+
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  INPUT
@@ -144,7 +194,12 @@ public class PauseManager : MonoBehaviour
             pauseTimerText.text = $"Tiempo restante: {minutes:00}:{seconds:00}";
         }
 
-        if (pauseCanvas != null) pauseCanvas.SetActive(true);
+        SetPauseCanvasVisible(true);
+
+        // Activar rayos de los controles para interactuar con los botones
+        if (UIManager.Instance != null)
+            UIManager.Instance.SetHandRays(true);
+
         Debug.Log("[PauseManager] Juego pausado.");
     }
 
@@ -154,7 +209,12 @@ public class PauseManager : MonoBehaviour
         _isPaused = false;
         Time.timeScale = 1f;
 
-        if (pauseCanvas != null) pauseCanvas.SetActive(false);
+        SetPauseCanvasVisible(false);
+
+        // Desactivar rayos al reanudar el juego
+        if (UIManager.Instance != null)
+            UIManager.Instance.SetHandRays(false);
+
         Debug.Log("[PauseManager] Juego reanudado.");
     }
 
@@ -165,7 +225,7 @@ public class PauseManager : MonoBehaviour
         Time.timeScale = 1f;
         _isPaused = false;
 
-        if (pauseCanvas != null) pauseCanvas.SetActive(false);
+        SetPauseCanvasVisible(false);
 
         if (GameManager.Instance != null)
             GameManager.Instance.EndGame();

@@ -69,11 +69,11 @@
 
 ## 8. ⏸️ Menú de Pausa Flotante (`PauseManager.cs`)
 
-- [ ] Crea un nuevo Canvas (World Space) y ponle un Panel con botones para "Continuar" y "Terminar Partida".
-- [ ] Posiciónalo frente al jugador (puedes hacerlo hijo de la cámara, o que un script lo siga, o simplemente dejarlo flotando en un lugar accesible).
-- [ ] Añádele el script **`PauseManager.cs`** al Canvas o a un GameObject gestor.
-- [ ] Asigna el `Pause Canvas` y los botones.
-- [ ] **Input Action:** Selecciona qué botón de tu control VR servirá para pausar y asígnalo en el campo `Pause Action` (ej. el botón Start/Menú del controlador izquierdo).
+- [X] Crea un nuevo Canvas (World Space) y ponle un Panel con botones para "Continuar" y "Terminar Partida".
+- [X] Posiciónalo frente al jugador (puedes hacerlo hijo de la cámara, o que un script lo siga, o simplemente dejarlo flotando en un lugar accesible).
+- [X] Añádele el script **`PauseManager.cs`** al Canvas o a un GameObject gestor.
+- [X] Asigna el `Pause Canvas` y los botones.
+- [X] **Input Action:** Selecciona qué botón de tu control VR servirá para pausar y asígnalo en el campo `Pause Action` (ej. el botón Start/Menú del controlador izquierdo).
 
 ## 9. 📻 Configurar los Comerciales en la Radio
 
