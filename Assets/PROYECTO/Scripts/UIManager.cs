@@ -203,14 +203,17 @@ public class UIManager : MonoBehaviour
     [Tooltip("Música de fondo para el menú principal.")]
     [SerializeField] private AudioClip menuMusic;
 
-    [Tooltip("Sonido al recibir puntos.")]
-    [SerializeField] private AudioClip scoreUpSound;
+    [Tooltip("Arreglo de 5 sonidos para el combo de entrega.")]
+    [SerializeField] private AudioClip[] scoreUpSounds = new AudioClip[5];
 
     [Tooltip("Sonido de game over.")]
     [SerializeField] private AudioClip gameOverSound;
 
-    [Tooltip("Sonido de cuenta regresiva (últimos 10 seg).")]
+    [Tooltip("Sonido de cuenta regresiva (últimos 10 seg - Tik).")]
     [SerializeField] private AudioClip countdownTickSound;
+
+    [Tooltip("Sonido de cuenta regresiva (últimos 10 seg - Tak).")]
+    [SerializeField] private AudioClip countdownTackSound;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  ESTADO PRIVADO
@@ -219,6 +222,12 @@ public class UIManager : MonoBehaviour
     private AudioSource _audioSource;
     private int _lastCountdownSecond = -1;
     private int _previousScore = 0;
+
+    // Estado del combo de entrega
+    private int _comboCount = 0;
+    private float _lastDeliveryTime = -1f;
+    private float _currentTolerance = 10f;
+    private bool _useTackSound = false;
 
     // Name entry state
     private char[] _currentNameChars = { 'A', 'A', 'A' };
@@ -401,6 +410,7 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnOrdersChanged += UpdateOrders;
         GameManager.Instance.OnGameOver      += ShowGameOver;
         GameManager.Instance.OnStartAnimationCompleted += HandleStartAnimationCompleted;
+        GameManager.Instance.OnTimeExpired   += PlayGameOverSound;
 
         _subscribed = true;
     }
@@ -414,6 +424,7 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnOrdersChanged -= UpdateOrders;
         GameManager.Instance.OnGameOver      -= ShowGameOver;
         GameManager.Instance.OnStartAnimationCompleted -= HandleStartAnimationCompleted;
+        GameManager.Instance.OnTimeExpired   -= PlayGameOverSound;
 
         _subscribed = false;
     }
@@ -437,13 +448,29 @@ public class UIManager : MonoBehaviour
         timerText.color = time <= 30f ? timerUrgentColor : timerNormalColor;
 
         // Efecto de cuenta regresiva en los últimos 10 segundos
-        if (time <= 10f && countdownTickSound != null)
+        if (time <= 10f)
         {
             int currentSecond = Mathf.FloorToInt(time);
             if (currentSecond != _lastCountdownSecond && currentSecond >= 0)
             {
                 _lastCountdownSecond = currentSecond;
-                _audioSource.PlayOneShot(countdownTickSound);
+
+                AudioClip clipToPlay = null;
+                if (_useTackSound)
+                {
+                    clipToPlay = countdownTackSound != null ? countdownTackSound : countdownTickSound;
+                }
+                else
+                {
+                    clipToPlay = countdownTickSound != null ? countdownTickSound : countdownTackSound;
+                }
+
+                if (clipToPlay != null && _audioSource != null)
+                {
+                    _audioSource.PlayOneShot(clipToPlay);
+                }
+
+                _useTackSound = !_useTackSound;
             }
         }
     }
@@ -454,9 +481,44 @@ public class UIManager : MonoBehaviour
         if (scoreText != null)
             scoreText.text = $"${score}";
 
-        // Efecto de sonido si subió el score
-        if (score > _previousScore && scoreUpSound != null && _audioSource != null)
-            _audioSource.PlayOneShot(scoreUpSound);
+        // Efecto de sonido si subió el score (se entregó un plato)
+        if (score > _previousScore)
+        {
+            float currentTime = Time.time;
+            if (_lastDeliveryTime < 0f)
+            {
+                // Primera entrega
+                _comboCount = 0;
+                _currentTolerance = 10f;
+            }
+            else
+            {
+                float elapsed = currentTime - _lastDeliveryTime;
+                if (elapsed <= _currentTolerance)
+                {
+                    _comboCount++;
+                    _currentTolerance = 10f + _comboCount;
+                }
+                else
+                {
+                    // Excedió el tiempo, reiniciar combo
+                    _comboCount = 0;
+                    _currentTolerance = 10f;
+                }
+            }
+            _lastDeliveryTime = currentTime;
+
+            // Reproducir sonido de combo
+            if (scoreUpSounds != null && scoreUpSounds.Length > 0 && _audioSource != null)
+            {
+                int soundIndex = Mathf.Min(_comboCount, scoreUpSounds.Length - 1);
+                AudioClip clipToPlay = scoreUpSounds[soundIndex];
+                if (clipToPlay != null)
+                {
+                    _audioSource.PlayOneShot(clipToPlay);
+                }
+            }
+        }
 
         _previousScore = score;
     }
@@ -592,6 +654,12 @@ public class UIManager : MonoBehaviour
         _lastCountdownSecond = -1;
         _previousScore = 0;
 
+        // Reiniciar estado de combo y reloj
+        _comboCount = 0;
+        _lastDeliveryTime = -1f;
+        _currentTolerance = 10f;
+        _useTackSound = false;
+
         // Detener música de menú al iniciar juego
         StopMenuMusic();
     }
@@ -648,10 +716,15 @@ public class UIManager : MonoBehaviour
         // Activar pantalla de Game Over (ya está en su posición fija en la escena)
         if (gameOverScreen != null)
             gameOverScreen.SetActive(true);
+    }
 
-        // Audio de game over
+    private void PlayGameOverSound()
+    {
         if (gameOverSound != null && _audioSource != null)
+        {
             _audioSource.PlayOneShot(gameOverSound);
+            Debug.Log("[UIManager] Sonido de Game Over reproducido inmediatamente al expirar el tiempo.");
+        }
     }
 
     /// <summary>

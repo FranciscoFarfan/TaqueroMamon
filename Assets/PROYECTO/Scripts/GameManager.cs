@@ -179,6 +179,9 @@ public class GameManager : MonoBehaviour
     /// <summary>Se dispara cuando termina la animación inicial del sol.</summary>
     public event Action OnStartAnimationCompleted;
 
+    /// <summary>Se dispara inmediatamente cuando termina el tiempo de juego, antes de la animación del sol.</summary>
+    public event Action OnTimeExpired;
+
     // ═══════════════════════════════════════════════════════════════════════════
     //  UNITY LOOP
     // ═══════════════════════════════════════════════════════════════════════════
@@ -313,6 +316,9 @@ public class GameManager : MonoBehaviour
         ResetKnife();
 
         Debug.Log($"[GameManager] Partida terminando — Esperando animación del sol ({endAnimationDelay}s)...");
+
+        // Notificar que el tiempo ha expirado inmediatamente
+        OnTimeExpired?.Invoke();
 
         // Iniciar secuencia de fin con espera
         StartCoroutine(EndGameSequence());
