@@ -692,13 +692,13 @@ public class UIManager : MonoBehaviour
         // --- Actualizar Estadísticas ---
         if (GameManager.Instance != null)
         {
-            if (statsTacosText != null) statsTacosText.text = GameManager.Instance.TacosDelivered.ToString();
-            if (statsOrdersText != null) statsOrdersText.text = GameManager.Instance.OrdersCompleted.ToString();
-            if (statsTortillasText != null) statsTortillasText.text = GameManager.Instance.TortillasLost.ToString();
-            if (statsMeatText != null) statsMeatText.text = GameManager.Instance.MeatDropped.ToString();
-            if (statsWasteText != null) statsWasteText.text = GameManager.Instance.TacosLost.ToString();
-            if (statsEarnedText != null) statsEarnedText.text = $"${GameManager.Instance.TotalEarned}";
-            if (statsPenaltiesText != null) statsPenaltiesText.text = $"${GameManager.Instance.TotalPenalties}";
+            if (statsTacosText != null) statsTacosText.text = $"Tacos Entregados: x{GameManager.Instance.TacosDelivered}";
+            if (statsOrdersText != null) statsOrdersText.text = $"Órdenes Completadas: x{GameManager.Instance.OrdersCompleted}";
+            if (statsTortillasText != null) statsTortillasText.text = $"Tortillas Perdidas: x{GameManager.Instance.TortillasLost}";
+            if (statsMeatText != null) statsMeatText.text = $"Carne Caída: x{GameManager.Instance.MeatDropped}";
+            if (statsWasteText != null) statsWasteText.text = $"Tacos Perdidos: x{GameManager.Instance.TacosLost}";
+            if (statsEarnedText != null) statsEarnedText.text = $"Total Ganado: ${GameManager.Instance.TotalEarned}";
+            if (statsPenaltiesText != null) statsPenaltiesText.text = $"Total Penalizaciones: ${GameManager.Instance.TotalPenalties}";
         }
         // --------------------------------
 

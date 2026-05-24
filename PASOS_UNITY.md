@@ -50,17 +50,22 @@
 
 ## 7. 📊 Configurar el Resumen de Partida (Game Over Canvas)
 
-- [ ] Ve a tu Canvas de Game Over (donde ya muestras el Score Final).
-- [ ] Añade nuevos textos (UIToolkit o TextMeshPro) para mostrar las estadísticas en la misma pantalla de fin de juego. Por ejemplo:
-  - [ ] Tacos Entregados: [0]
-  - [ ] Órdenes Completadas: [0]
-  - [ ] Tortillas Perdidas: [0]
-  - [ ] Carne Caída: [0]
-  - [ ] Tacos Perdidos/Mermados: [0]
-  - [ ] Total Ganado: [$0]
-  - [ ] Total Penalizaciones: [$0]
-- [ ] Selecciona el objeto que tiene tu script **`UIManager`**.
-- [ ] Ahora verás una nueva sección llamada **`Estadísticas (Game Over)`**. Arrastra allí cada uno de los textos que creaste en el paso anterior.
+- [X] Ve a tu Canvas de Game Over (donde ya muestras el Score Final).
+- [X] Añade nuevos textos (UIToolkit o TextMeshPro) para mostrar las estadísticas en la misma pantalla de fin de juego. Por ejemplo: Tacos Entregados: x0
+
+  Órdenes Completadas: x0
+
+  Tortillas Perdidas: x0
+
+  Carne Caída: x0
+
+  Tacos Perdidos/Mermados: x0
+
+  Total Ganado: $0
+
+  Total Penalizaciones: $0
+- [X] Selecciona el objeto que tiene tu script **`UIManager`**.
+- [X] Ahora verás una nueva sección llamada **`Estadísticas (Game Over)`**. Arrastra allí cada uno de los textos que creaste en el paso anterior.
 
 ## 8. ⏸️ Menú de Pausa Flotante (`PauseManager.cs`)
 
@@ -74,7 +79,6 @@
 
 * [ ] Selecciona el objeto de tu **Radio** en la escena o prefab (el que tiene el script `Radio.cs`).
 * [ ] En el Inspector verás una nueva lista llamada **`Ads`** justo debajo de las canciones.
-
 * [ ] Arrastra ahí tus audios de comerciales/anuncios.
 * [ ] Por defecto, el campo `Songs Before Ad` está en **2**. Esto significa que sonarán 2 canciones, luego 1 comercial, luego 2 canciones, etc. Si luego decides que sea cada 3 canciones, ¡solo le cambias el número ahí mismo!
 
