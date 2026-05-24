@@ -72,13 +72,11 @@
 
 ## 9. 📻 Configurar los Comerciales en la Radio
 
-Selecciona el objeto de tu **Radio** en la escena o prefab (el que tiene el script `Radio.cs`).
+* [ ] Selecciona el objeto de tu **Radio** en la escena o prefab (el que tiene el script `Radio.cs`).
+* [ ] En el Inspector verás una nueva lista llamada **`Ads`** justo debajo de las canciones.
 
-En el Inspector verás una nueva lista llamada **`Ads`** justo debajo de las canciones.
-
-Arrastra ahí tus audios de comerciales/anuncios.
-
-Por defecto, el campo `Songs Before Ad` está en **2**. Esto significa que sonarán 2 canciones, luego 1 comercial, luego 2 canciones, etc. Si luego decides que sea cada 3 canciones, ¡solo le cambias el número ahí mismo!
+* [ ] Arrastra ahí tus audios de comerciales/anuncios.
+* [ ] Por defecto, el campo `Songs Before Ad` está en **2**. Esto significa que sonarán 2 canciones, luego 1 comercial, luego 2 canciones, etc. Si luego decides que sea cada 3 canciones, ¡solo le cambias el número ahí mismo!
 
 ## 10. 🔪 Configurar el reinicio del Cuchillo (al terminar juego)
 
