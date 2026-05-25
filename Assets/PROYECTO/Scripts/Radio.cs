@@ -23,6 +23,15 @@ public class Radio : MonoBehaviour
     private int consecutiveSongsPlayed = 0;
     private bool isPlayingAd = false;
 
+    [Header("Mezclador de Volumen")]
+    [Tooltip("Volumen para las canciones (0 a 1)")]
+    [Range(0f, 1f)]
+    public float songVolume = 0.1f;
+
+    [Tooltip("Volumen para los comerciales (0 a 1)")]
+    [Range(0f, 1f)]
+    public float adVolume = 0.6f;
+
     void Start()
     {
         audioSource = GetComponent<AudioSource>();
@@ -77,6 +86,7 @@ public class Radio : MonoBehaviour
         audioSource.clip = ads[randomAdIdx];
         audioSource.Play();
 
+        audioSource.volume = adVolume;
         lastPlayTime = Time.time;
         Debug.Log($"[Radio] Reproduciendo comercial...");
     }
@@ -84,6 +94,7 @@ public class Radio : MonoBehaviour
     private void PlayNextRandomSong()
     {
         isPlayingAd = false;
+        audioSource.volume = songVolume;
         int randomIdx = currentSongIndex;
         
         // Evitar repetir canción si hay más de una
