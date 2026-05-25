@@ -42,6 +42,7 @@ public class PlayVideo : MonoBehaviour
 
     private void Start()
     {
+        videoPlayer.loopPointReached += (vp) => NextClip();
         if (playAtStart)
         {
             Play();
@@ -84,6 +85,10 @@ public class PlayVideo : MonoBehaviour
 
     public void Play()
     {
+        if (videoClips.Count > 0)
+        {
+            videoPlayer.clip = videoClips[index];
+        }
         ApplyVideoMaterial();
         videoPlayer.Play();
     }
