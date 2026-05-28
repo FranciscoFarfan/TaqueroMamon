@@ -122,6 +122,11 @@ public class UIManager : MonoBehaviour
     [Tooltip("Texto TMP donde se muestra el top 10 (dentro de ScoreBG).")]
     [SerializeField] private TMP_Text leaderboardText;
 
+    [Header("Carrusel de instrucciones")]
+    [Tooltip("Script InstructionCarousel del canvas de instrucciones. " +
+             "Se muestra junto con MenuBG y se oculta en todos los demás estados.")]
+    [SerializeField] private InstructionCarousel instructionCarousel;
+
     // ═══════════════════════════════════════════════════════════════════════════
     //  INSPECTOR — PANTALLA DE INICIO
     // ═══════════════════════════════════════════════════════════════════════════
@@ -320,6 +325,7 @@ public class UIManager : MonoBehaviour
             if (startScreen != null) startScreen.SetActive(false);
             if (menuBG != null) menuBG.SetActive(false);
             if (scoreBG != null) scoreBG.SetActive(true);
+            instructionCarousel?.Hide();
             TeleportPlayer(teleportMenuPoint);
         }
         else
@@ -619,8 +625,10 @@ public class UIManager : MonoBehaviour
         SetHandRays(true);
 
         // Ocultar MenuBG y ScoreBG al inicio (StartBG se encarga de mostrarlos vía onClick)
+        // El carrusel también se oculta; se mostrará cuando el jugador abra MenuBG
         if (menuBG != null) menuBG.SetActive(false);
         if (scoreBG != null) scoreBG.SetActive(false);
+        instructionCarousel?.Hide();
 
         // Actualizar leaderboard text
         RefreshLeaderboardDisplay();
@@ -638,6 +646,18 @@ public class UIManager : MonoBehaviour
         PlayMenuMusic();
     }
 
+    /// <summary>
+    /// Activa MenuBG y muestra el carrusel de instrucciones.
+    /// Asigna este método al onClick del botón que abre MenuBG desde StartBG,
+    /// en lugar de activar MenuBG directamente.
+    /// </summary>
+    public void ShowMenuBG()
+    {
+        if (scoreBG != null) scoreBG.SetActive(false);
+        if (menuBG  != null) menuBG.SetActive(true);
+        instructionCarousel?.Show();
+    }
+
     /// <summary>Muestra el HUD durante la partida.</summary>
     private void ShowGameHUD()
     {
@@ -647,6 +667,7 @@ public class UIManager : MonoBehaviour
         if (menuBG         != null) menuBG.SetActive(false);          
         if (scoreBG        != null) scoreBG.SetActive(false);         
         if (hudContainer   != null) hudContainer.SetActive(true);
+        instructionCarousel?.Hide();
 
         // Desactivar rayos de manos (el jugador usa las manos para agarrar objetos)
         SetHandRays(false);
@@ -679,6 +700,7 @@ public class UIManager : MonoBehaviour
         if (hudContainer   != null) hudContainer.SetActive(false);
         if (menuBG         != null) menuBG.SetActive(false);          
         if (scoreBG        != null) scoreBG.SetActive(false);
+        instructionCarousel?.Hide();
 
         _pendingScore = finalScore;
 
@@ -781,6 +803,7 @@ public class UIManager : MonoBehaviour
         // Ocultar el menú de inicio temporalmente para que el jugador vea la animación del sol desde fuera
         if (startScreen != null) startScreen.SetActive(false);
         if (menuBG != null) menuBG.SetActive(false);
+        instructionCarousel?.Hide();
         SetHandRays(false);
 
         // Inicia la lógica del GameManager (animación del sol, etc.)
@@ -890,13 +913,15 @@ public class UIManager : MonoBehaviour
         RefreshLeaderboardDisplay();
         if (menuBG != null) menuBG.SetActive(false);
         if (scoreBG != null) scoreBG.SetActive(true);
+        instructionCarousel?.Hide();
     }
 
     /// <summary>Vuelve al menú (MenuBG) y oculta el leaderboard (ScoreBG).</summary>
     private void OnBackToMenuPressed()
     {
         if (scoreBG != null) scoreBG.SetActive(false);
-        if (menuBG != null) menuBG.SetActive(true);
+        if (menuBG  != null) menuBG.SetActive(true);
+        instructionCarousel?.Show();
     }
 
     /// <summary>Cierra la aplicación (o detiene el juego en el Editor).</summary>
@@ -969,6 +994,7 @@ public class UIManager : MonoBehaviour
         if (scoreBG        != null) scoreBG.SetActive(false);
         if (nameEntryScreen!= null) nameEntryScreen.SetActive(false);
         if (hudContainer   != null) hudContainer.SetActive(false);
+        instructionCarousel?.Hide();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
